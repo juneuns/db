@@ -150,5 +150,86 @@ SELECT FLOOR(MONTHS_BETWEEN(SYSDATE, TO_DATE('1971/12/26', 'YYYY/MM/DD'))) 개월�
 SELECT ename 사원이름, hiredate 입사일, FLOOR(MONTHS_BETWEEN(SYSDATE, hiredate)) 개월수 FROM emp;
 
 /*
-    3. 
+    3. LAST_DAY
+        ==> 지정한 날짜가 포함된 월의 가장 마지막 날짜를 알려주는 함수
+        
+        형식 ]
+            LAST_DAY(날짜)
+*/
+
+-- 올 2월의 마지막 날짜를 조회하세요.
+SELECT LAST_DAY(TO_DATE('2020/02', 'YYYY/MM')) "2월 마지막 날" FROM dual;
+
+-- 사원의 이름, 급여, 첫급여일을 조회하세요.
+-- 급여일은 해당월의 마지막 날짜로 한다.
+SELECT
+    ename 사원이름, sal 사원급여, comm 커미션,
+    LAST_DAY(hiredate) 첫월급날
+FROM
+    emp
+;
+
+select 800 * 1200 from dual;
+
+/*
+    4. NEXT_DAY
+        ==> 지정한 날 이후에 가장 처음 만나는 지정한 요일이 몇일인지를 알려주는 함수
+        
+        형식 ]
+            NEXT_DAY(날짜, '요일')
+            
+        참고 ]
+            요일 지정하는 방법
+                1. 우리는 한글환경으로 세팅이 된 오라클을 사용하고 있으므로
+                    '월', '화', ...
+                    '월요일', '화요일',...
+                    
+                2. 영문권에서는
+                    'MON', 'TUE', ...
+                    'MONDAY', ...
+*/
+
+-- 다음주 토요일은 몇일인지 조회하세요.
+SELECT
+    NEXT_DAY(NEXT_DAY(sysdate, '월'), '토') 다음주토요일
+FROM
+    dual
+;
+
+/*
+    5. ROUND
+        ==> 날짜를 지정한 부분에서 반올림하는 함수
+            
+            지정한 부분이란?
+                년, 월, 일, ...
+                
+        형식 ]
+            ROUND(날짜, '기준')
+                
+                기준
+                    YEAR
+                    MONTH
+                    DD
+                    DAY
+                    HH
+                    ...
+        참고 ]
+            년도기준 반올림은
+            <== 6월이전은 현재년도, 7월이후는 다음해...
+            
+            월기준 반올림
+            <== 15이전은 현재달, 16일 이후는 다음달...
+            
+            DAY -   요일기준
+            DD  -   날짜기준
+            
+*/
+
+-- 오늘날짜를 년도를 기준으로 반올림해서 조회하세요.
+SELECT TO_CHAR(ROUND(sysdate, 'MI'), 'YYYY/MM/DD HH24:MI:SS') 시간반올림 FROM  dual;
+
+----------------------------------------------------------------------------------------------
+/*
+    변환 함수
+    ==> 
 */
