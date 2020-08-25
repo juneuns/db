@@ -228,8 +228,202 @@ FROM
 -- 오늘날짜를 년도를 기준으로 반올림해서 조회하세요.
 SELECT TO_CHAR(ROUND(sysdate, 'MI'), 'YYYY/MM/DD HH24:MI:SS') 시간반올림 FROM  dual;
 
+
+/*
+    문제 ] 사원 정보를 조회하세요.
+    사원의 정보는 
+        사원이름 : XXX, 사원급여 : ***,*33
+    의 형태로 조회되게 하세요.
+    
+    급여는 총 7자리로 표현하고
+    뒤의 두자리만 표시하고 나머지는 * 로 표현한다.
+*/
+
+SELECT
+    CONCAT(
+        CONCAT(CONCAT('사원이름 : ', LPAD(ename, 8, ' ')), ', '),
+        CONCAT('사원급여 : ',
+            CONCAT(
+                LPAD(
+                    SUBSTR(
+                        TO_CHAR(sal, '000,000'), 
+                        INSTR(TO_CHAR(sal, '000,000'), ','), 1),
+                    INSTR(TO_CHAR(sal, '000,000'), ',') - INSTR(TO_CHAR(sal, '000,000'), '0') + 1, 
+                    '*'
+                ),
+                LPAD(
+                    SUBSTR(
+                        TO_CHAR(sal, '000,000'), -2
+                    ),
+                    3, '*'
+                )
+            )
+        )
+    ) 사원정보
+FROM
+    emp
+;
+
+
+SELECT
+    MAX(LENGTH(ENAME)) MAX
+FROM
+    emp
+;
+
+
+SELECT
+    RPAD(
+        TRANSLATE(
+            SUBSTR(TO_CHAR(sal, '000,000'), 2, LENGTH(TO_CHAR(sal, '000,000')) - 3), 
+            '0123456789', 
+            '**********'
+        ),
+        LENGTH(TO_CHAR(sal, '000,000')) - 1,
+        SUBSTR(TO_CHAR(sal, '000,000'), -2)
+    )
+FROM
+    emp
+;
+
+SELECT
+    CONCAT(TRANSLATE(SUBSTR(SSAL, 1, LENGTH(SSAL) - 2), '0123456789', '*********'), SUBSTR(SSAL, -2))
+FROM
+    (SELECT
+        LTRIM(LTRIM(SUBSTR(TO_CHAR(SAL, '000,000'), 2), '0'), ',') SSAL
+    FROM
+        EMP
+    )
+;
+
+
+SELECT
+    INSTR(TO_CHAR(1234, '000,000'), '0') -- ==> 2가 반환됨...
+FROM
+    DUAL
+;
+
+SELECT
+    RPAD(
+        SUBSTR(TO_CHAR(FLOOR(12345 / 10), '000,00'), 2), 
+        LENGTH(TO_CHAR(12345, '000,000')) - 1, 
+        '*')
+FROM
+    DUAL
+;
+
 ----------------------------------------------------------------------------------------------
 /*
     변환 함수
-    ==> 
+    ==> 함수는 데이터 형태에 따라서 사용하는 함수가 달라진다.
+        그런데 만약 사용하려는 함수에 필요한 데이터가 아닌 경우는 어떻게 ???
+        이럴때 사용하는 것이 형변환 함수이다.
+        ==> 데이터의 형태를 바꿔서 특정 함수에 사용할 수 있도록 만들어주는 함수.
+        
+        
+    1. TO_CHAR
+        ==> 날짜나 숫자를 문자 데이터로 변환시켜주는 함수
+        
+        형식 1]
+            
+            TO_CHAR(날짜 혹은 숫자데이터)
+            
+        형식 2 ]
+            
+            TO_CHAR(날짜 혹은 숫자, '형식')
+            ==> 변환할 때 문자열의 형식을 만들어서 변환시키는 방법
 */
+
+-- 사원중 5월에 입사한 사원의 정보를 조회하세요. 단, 형변환 함수를 사용해서 처리하세요.
+SELECT
+    ename, hiredate 입사일, TO_CHAR(hiredate) 입사날짜
+FROM
+    emp
+WHERE
+    TO_CHAR(hiredate) LIKE '____/05/__'
+;
+
+-- 급여가 100 ~ 999 사이인 사원의 사원이름, 급여를 조회하세요. 단, 형변환 함수를 사용해서 처리하세요.
+
+SELECT
+    ename, sal
+FROM
+    emp
+WHERE
+    LENGTH(TO_CHAR(sal)) = 3
+;
+
+-- 사원의 이름, 급여를 조회하세요. 단, 급여는 세자리마다 , 로 구분해주고 앞에는 $ 붙여주세요.
+SELECT
+    ename 사원이름, TO_CHAR(sal, '$000,000,000') 사원급여1, TO_CHAR(sal, '$999,999,999') 사원급여
+FROM
+    emp
+;
+
+-- 사원의 이름, 입사일, 입사요일을 조회하세요.
+
+SELECT
+    ename 사원이름, hiredate 입사일, TO_CHAR(hiredate, 'DAY') 입사요일
+FROM
+    emp
+;
+
+SELECT
+    ename 사원이름, TO_CHAR(hiredate, 'yyyy-mm-dd') 입사일
+FROM
+    emp
+;
+
+/*
+    2. TO_DATE
+        ==> 문자로 된 내용을 날짜 데이터로 변환해주는 함수
+        
+        형식 1]
+            TO_DATE(날짜형식 문자)
+            
+        형식 2 ]
+            TO_DATE(날짜형식 문자, '형식')
+            ==> 문자데이터가 오라클이 지정하는 형식의 날짜처럼
+                되어있지 않은 경우 사용하는 방법
+                
+                예 ]
+                    '08/25/20'  처럼 월/일/년 의 순서로 문자가 만들어진 경우
+*/
+
+-- 당신이 태어난지 몇일 째인지 조회하세요.
+SELECT FLOOR(sysdate - TO_DATE('1971/12/26')) || ' 일' AS "내가 산 날수" FROM dual;
+
+SELECT FLOOR(sysdate - TO_DATE('12/26/1971', 'MM/DD/YYYY')) || ' 일' AS "내가 산 날수" FROM dual;
+
+/*
+    3. TO_NUMBER
+        ==> 문자로된 내용을 숫자 데이터로 변환시켜주는 함수
+            <== 문자데이터는 +, - 연산이 되지 않는다.
+            
+            자바의 경우
+                String str = 'hong';
+                str = str + ' gil dong';
+            가 되지만 
+            오라클은 문자열 결합 연산자가 별도( || )로 제공이 되고 있다.
+            
+        형식 1 ]
+            TO_NUMBER(문자데이터)
+            
+        형식 2 ]
+            TO_NUMBET(문자데이터, '형식')
+*/
+
+-- '123'  과 '789' 를 더한 값을 조회하세요.
+SELECT
+    TO_NUMBER('123') + TO_NUMBER('789') 계산결과
+FROM
+    dual
+;
+
+-- '123,546' - '5,678'
+
+SELECT
+    TO_NUMBER('123,546', '999,999') - TO_NUMBER('5,678', '999,999') RESULT
+FROM
+    dual
+;
