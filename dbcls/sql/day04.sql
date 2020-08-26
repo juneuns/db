@@ -265,16 +265,37 @@ GROUP BY
 /*
 	1. 각 부서별로 최소 급여를 조회하세요.
  */
-
+SELECT
+    deptno 부서번호, MIN(sal) 최소급여
+FROM
+    emp
+GROUP BY
+    deptno
+;
 /*
 	2. 각 직책별 급여의 총액과 평균급여를 조회하세요.
  */
-
+SELECT
+    job 직급, MAX(sal) 직급최고급여, MIN(sal) 직급최소급여, 
+    ROUND(AVG(sal), 2) 직급급여평균, SUM(sal) 직급급여총액, COUNT(*) 사원수
+FROM
+    emp
+GROUP BY
+    job
+;
 /*
 	3. 입사 년도별로 평균 급여와 총급여를 조회하세요.
 		입사년도, 평균급여, 총급여
  */
-
+SELECT
+    TO_CHAR(hiredate, 'yyyy') 입사년도, ROUND(AVG(sal), 2) 급여평균, SUM(sal) 급여합계, MAX(sal) 최고급여, MIN(sal) 최소급여, COUNT(*) 직원수
+FROM
+    emp
+GROUP BY
+    TO_CHAR(hiredate, 'yyyy')
+ORDER BY
+    TO_CHAR(hiredate, 'yyyy') DESC
+;
 /*
 	4. 각 년도별 입사한 사원수를 조회하세요.
 		입사년도, 사원수
@@ -284,11 +305,32 @@ GROUP BY
 	5. 사원이름의 글자수가 4, 5개인 사원의 수를 조회하세요.
 		단, 사원이름 글자수를 그룹화해서 조회하세요.
  */
-
+SELECT
+    LENGTH(ename) 이름글자수, COUNT(*) 사원수
+FROM
+    emp
+WHERE
+/*
+    ename LIKE '____'
+    OR ename LIKE '_____'
+*/
+--    LENGTH(ename) BETWEEN 4 AND 5
+    LENGTH(ename) IN (4, 5)
+GROUP BY
+    LENGTH(ename)
+;
 /*
 	6. 81년도에 입사한 사원의 수를 직책별로 조회하세요.
  */
-
+SELECT
+    job 직급, COUNT(*) 사원수
+FROM
+    emp
+WHERE
+    hiredate BETWEEN '1981/01/01' AND '1982/01/01'
+GROUP BY
+    job
+;
 -------------------------------------------------------------------------
 /*
 	HAVING
@@ -340,25 +382,69 @@ HAVING
 	7. 사원이름의 길이가 4, 5글자인 사원의 수를 부서별로 조회하세요.
 		단, 사원수가 한사람 미만인 부서는 제외하고 조회하세요.
  */
-
+SELECT
+    deptno 부서번호, COUNT(*) 사원수
+FROM
+    emp
+WHERE
+    LENGTH(ename) IN (4, 5)
+GROUP BY
+    deptno
+HAVING
+    COUNT(*) >= 1
+;
 /*
 	8. 81년도 입사한 사람의 전체 급여를 직급별로 조회하세요.
 		단, 직급별 평균급여가 1000 미만인 직급은 조회에서 제외하세요.
  */
-
+SELECT
+    job 직급, SUM(sal) 전체급여, COUNT(*) 사원수
+FROM
+    EMP
+WHERE
+    TO_CHAR(hiredate, 'YY') = '81'
+GROUP BY
+    job
+HAVING
+    AVG(sal) >= 1000
+;
 /*
 	9. 81년도 입사한 사람의 총 급여를 사원의 이름 문자수별로 그룹화하세요.
 		단, 총 급여가 2000 미만인 경우는 제외하고
 		총급여가 높은 순서에서 낮은 순서로 내림차순으로 정렬해서
 		조회하세요.
  */
-
+SELECT
+    LENGTH(ename) 이름글자수, SUM(sal) 총급여, COUNT(*) 사원수
+FROM
+    emp
+WHERE
+    TO_CHAR(hiredate, 'YY') = '81'
+GROUP BY
+    LENGTH(ename)
+HAVING
+    SUM(sal) >= 2000
+ORDER BY
+    SUM(sal) DESC
+;
 /*
 	10. 사원의 이름문자수가 4, 5 인 사원의 부서별 사원수를 조회하세요.
 		단, 사원수가 0명인 경우는 제외하고
 		부서번호 오름차순으로 정렬해서 조회하세요.
  */
-
+SELECT
+    deptno 부서번호, COUNT(*) 부서별사원수
+FROM
+    emp
+WHERE
+    LENGTH(ename) IN (4, 5)
+GROUP BY
+    deptno
+HAVING
+    COUNT(*) <> 0
+ORDER BY
+    deptno
+;
 /*
 	EXTRA ]
 		부서별로 급여를 조회하는데
@@ -366,6 +452,263 @@ HAVING
 		20부서는 급여합계를 조회하고
 		30번 부서는 부서 최고급여를 조회하세요.
  */
+
+SELECT
+    deptno,
+    DECODE(deptno, 10, ROUND(AVG(sal), 2),
+                    20, SUM(sal),
+                    30, MAX(sal)
+    ) 부서별조회급여1,
+    CASE deptno WHEN 10 THEN ROUND(AVG(sal), 2)
+                WHEN 20 THEN SUM(sal)
+                WHEN 30 THEN MAX(sal)
+    END 부서별조회급여2,
+    CASE WHEN deptno = 10 THEN ROUND(AVG(sal), 2)
+                WHEN deptno = 20 THEN SUM(sal)
+                WHEN deptno = 30 THEN MAX(sal)
+    END 부서별조회급여3
+FROM
+    emp
+GROUP BY
+    deptno
+ORDER BY
+    deptno
+;
+
+-------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------
+/*
+	서브질의
+	==> 질의 명령 안에 다시 질의 명령이 포함 된 것을 서브질의(서브쿼리)라 한다.
+	
+	참고 ]
+		서브질의중 from 절에 위치하는 서브질의를
+			인라인뷰(Inline View)
+		라고 부른다.
+		이때 이 서브질의는 질의의 결과를 테이블로 사용을 하게 된다.
+ */
+
+-- 'SMITH' 사원의 소속 부서의 사원들의 정보를 조회하세요.
+
+SELECT
+	empno, ename, hiredate, deptno
+FROM
+	emp
+WHERE
+	deptno = (	SELECT
+					deptno
+				FROM
+					emp
+				WHERE
+					ename = 'SMITH')
+;
+
+SELECT
+	dno, max, min, avg, cnt
+FROM
+	(
+		SELECT
+			deptno dno, MAX(sal) max, MIN(sal) min, AVG(sal) avg, COUNT(*) cnt
+		FROM
+			emp
+		GROUP BY
+			deptno
+	)
+WHERE
+	max = (
+			SELECT
+				MAX(sal)
+			FROM
+				emp
+			)
+;
+
+/*
+	서브질의의 결과에 따른 사용법
+	
+		***
+		1. 서브질의의 조회결과가 오직 한개의 데이터인 경우
+			==> 하나의 데이터로 보고 데이터를 사용할 수 잇는 경우에는 모두 사용한다.
+			
+			1) SELECT 절에 사용할 수 있다.
+				***
+				이때 서브질의의 조회결과는 반드시 단일행 단일필드로 조회되어야 된다.
+				
+			2) 조건절에 사용할 수 있다.
+ */
+
+-- 20번 부서 사원의 정보를 조회하는데
+-- 사원번호, 사원이름, 급여, 부서번호, 부서최고급여 를 조회하세요
+
+SELECT
+	empno, ename, sal, deptno,
+	(
+		SELECT
+			MAX(sal), MIN(sal)
+		FROM
+			emp
+		WHERE
+			deptno = 20
+	)
+FROM
+	emp
+WHERE
+	deptno = 20
+;
+
+
+SELECT
+	empno, ename, 100 * 3
+FROM
+	emp
+;
+
+/*
+		2. 서브질의의 결과가 두행 이상 나오는 경우
+			==> 이 경우는 조건절에서만 사용가능 하다.
+				이때 IN, ANY, ALL, EXIST 연사자를 사용해서 조건절에서 처리한다.
+				
+			참고 ]
+				IN
+					여러개의 데이터중 한개가 일치하면 되는 경우
+					
+				ANY
+					여러개의 데이터중 한개만 맞으면 되는 경우
+					
+				ALL
+					여러개의 데이터중 모두 만자야 되는 경우
+					
+				EXIST
+					여러개의 데이터중 하나만 맞으면 되는 경우
+					비교대상이 없이 사용한다.
+					서브질의의 결과가 있느냐 없느냐로 판단하는 연산자
+ */
+
+-- 직급이 'MANAGER'인 사원과 같은 부서에 속한 사원의 정보를 조회하세요.
+
+-- 직급이 'MANAGER'인 사원의 소속부서 조회
+
+SELECT
+    empno, ename, deptno, job
+FROM
+    emp
+WHERE
+    deptno IN (
+                SELECT
+                    DISTINCT deptno
+                FROM
+                    emp
+                WHERE
+                    job = 'CLERK'
+                    AND ename <> 'JAMES') -- (10 , 20, 30)
+;
+
+                SELECT
+                    DISTINCT deptno
+                FROM
+                    emp
+                WHERE
+                    job = 'CLERK'
+                    AND ename <> 'JAMES' -- (10 , 20, 30)
+;
+
+SELECT
+    *
+FROM
+    EMP
+WHERE
+    deptno NOT IN (30, 40, 50)
+;
+
+
+-- 사원의 정보를 조회하는데
+-- 모든 부서의 평균급여보다 많이 받는 사원의 정보를 조회하세요.
+SELECT
+    *
+FROM
+    emp
+WHERE
+/*
+    sal > ALL (
+                SELECT
+                    AVG(sal)
+                FROM
+                    emp
+                GROUP BY
+                    deptno
+            ) -- ==> (???, ???, ???)
+
+    sal > (
+                SELECT
+                    MAX(avg)
+                FROM
+                    (
+                        SELECT
+                            AVG(sal) avg
+                        FROM
+                            emp
+                        GROUP BY
+                            deptno
+                    )
+            )
+*/
+
+    sal > (
+                SELECT
+                    MAX(AVG(sal))
+                FROM
+                    emp
+                GROUP BY
+                    deptno
+            )
+ORDER BY
+    deptno
+;
+
+-- 각 부서의 평균급여를 하나라도 많이 받는 사원의 정보를 조회하세요.
+SELECT
+    *
+FROM
+    emp
+WHERE
+    sal > any (
+                SELECT
+                    AVG(sal)
+                FROM
+                    emp
+                GROUP BY
+                    deptno
+            ) -- ==> (???, ???, ???)
+;
+
+-- All ] 사원중 부서번호가 40인 사원이 있으면 모든 사원의 정보를 조회하세요.
+SELECT
+    *
+FROM
+    emp
+WHERE
+    EXISTS (    --- 비교대상 없이 사용한다.
+                SELECT
+                    *
+                FROM
+                    emp
+                WHERE
+                    deptno = 40
+            )
+;
+
+--------------------------------------------------------------------------------------
+update
+    emp
+set
+    sal = (SELECT sal from emp where ename = 'KING')
+where
+    ename = 'SMITH'
+;
+
+ROLLBACK;
+
+
 
 
 
