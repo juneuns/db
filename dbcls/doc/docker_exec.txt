@@ -4,20 +4,20 @@ exit
 
 C:\Users\class02>docker ps -a
 CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                    NAMES
-8331c6840977        mariadb             "docker-entrypoint.s¡¦"   26 minutes ago      Up 26 minutes       0.0.0.0:3306->3306/tcp   mariadb
+8331c6840977        mariadb             "docker-entrypoint.sâ€¦"   26 minutes ago      Up 26 minutes       0.0.0.0:3306->3306/tcp   mariadb
 
 C:\Users\class02>docker stop mariadb
 mariadb
 
 C:\Users\class02>docker ps -a
 CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS                      PORTS               NAMES
-8331c6840977        mariadb             "docker-entrypoint.s¡¦"   27 minutes ago      Exited (0) 13 seconds ago                       mariadb
+8331c6840977        mariadb             "docker-entrypoint.sâ€¦"   27 minutes ago      Exited (0) 13 seconds ago                       mariadb
 
 C:\Users\class02>docker start mariadb
 mariadb
 
 C:\Users\class02>docker ps -a
 CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                    NAMES
-8331c6840977        mariadb             "docker-entrypoint.s¡¦"   27 minutes ago      Up 7 seconds        0.0.0.0:3306->3306/tcp   mariadb
+8331c6840977        mariadb             "docker-entrypoint.sâ€¦"   27 minutes ago      Up 7 seconds        0.0.0.0:3306->3306/tcp   mariadb
 
 C:\Users\class02>
