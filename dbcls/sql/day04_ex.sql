@@ -23,7 +23,58 @@
 /*
     6. 부서의 급여합계가 가장 높은 부서의 사원들의 정보를 조회하세요.
 */
+SELECT
+    empno, ename, sal, deptno
+FROM
+    emp
+WHERE
+    deptno = (
+                SELECT
+                    deptno
+                FROM
+                    emp
+                GROUP BY
+                    deptno
+                HAVING
+                    sum(sal) = (
+                                    SELECT
+                                        max(sum(sal))
+                                    FROM
+                                        emp
+                                    GROUP BY
+                                        deptno
+                                )
+            )
+;
 
+SELECT
+    empno, ename, sal, deptno
+FROM
+    emp
+WHERE
+    deptno = (
+                SELECT
+                    deptno
+                FROM
+                    emp
+                GROUP BY
+                    deptno
+                HAVING
+                    sum(sal) = (
+                                    SELECT
+                                        max(sum)
+                                    FROM
+                                        (
+                                            SELECT
+                                                deptno dno, sum(sal) sum
+                                            FROM
+                                                emp
+                                            GROUP BY
+                                                deptno
+                                        )
+                                )
+            )
+;
 /*
     7. 커미션을 받는 직원이 한사람이라도 있는 부서의 소속 사원들의 정보를 조회하세요.
 */
