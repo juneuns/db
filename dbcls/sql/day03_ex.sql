@@ -33,6 +33,14 @@
     6. 사원중 월요일에 입사한 사원의 사원이름, 입사일, 입사요일 을 조회하세요.
 */
 
+SELECT
+    ename 사원이름, hiredate 입사일, to_char(hiredate, 'DAY') 입사요일
+FROM
+    emp
+WHERE
+    TO_CHAR(hiredate, 'DAY') = '월요일'
+;
+
 /*
     7. 사원 급여중에서 백단위가 0인 사원의 사원이름, 급여를 조회하세요.
     
@@ -40,7 +48,26 @@
         문자열로 변환후 처리한다.
 */
 
+SELECT
+    ename 사원이름, sal 사원급여, SUBSTR(TO_CHAR(sal), -3, 1) 백단위
+FROM
+    emp
+WHERE
+    SUBSTR(TO_CHAR(sal), -3, 1) = '0'
+;
+
+
 /*
     8. 사원의 사원이름, 급여, 커미션을 조회하세요.
         단, 커미션이 없는 사원은 NONE 으로 표시되게 조회하세요.
 */
+
+SELECT
+    ename 사원이름, sal 사원급여, comm 커미션, 
+    NVL(TO_CHAR(comm), 'NONE'
+--    DECODE(comm, NULL, 'NONE',
+--                TO_CHAR(comm)
+    ) 커미션여부
+FROM
+    emp
+;
