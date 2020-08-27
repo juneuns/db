@@ -395,5 +395,187 @@ HAVING
                 )
 ;
 
+-- 사원의 사원이름, 부서번호, 부서이름, 부서위치를 조회하세요.(서브질의로 처리하세요.)
+SELECT
+    e.ename 사원이름, e.deptno 부서번호,
+    (
+        SELECT
+            dname
+        FROM
+            dept
+        WHERE
+            deptno = e.deptno
+    ) 부서이름,
+    (
+        SELECT
+            loc
+        FROM
+            dept
+        WHERE
+            deptno = e.deptno
+    ) 부서위치
+FROM
+    emp e
+;
+
+SELECT
+    scott.emp.ename
+FROM
+    scott.emp
+;
+
+SELECT 
+    *
+FROM
+    hr.employees
+;
+
+-- quiz first_name 의 두번째 글자가 'a' 인 사원의 정보를 조회하세요.
+SELECT 
+    *
+FROM
+    hr.employees
+WHERE
+--    first_name LIKE '_a%'
+    SUBSTR(first_name, 2, 1) = 'a'
+;
+
+
+
+/*
+    ANSI JOIN
+    ==> 질의 명령은 데이터베이스(DBMS)에 따라서 문법이 달라진다.
+        
+        ANSI SQL 이란?
+            미국의 ANSI 협회에서 공통적으로 실행가능한 질의명령을 만들어서 사용하도록 해놓은 것.
+            
+    1. CROSS JOIN
+        ==> 오라클에서의 Cartesion Product 를 만들어내는 조인과 같은 조인
+        
+        형식 ]
+            SELECT
+                필드이름
+            FROM
+                테이블1    CROSS JOIN  테이블2
+            ;
+*/
+
+-- oracle cross join
+SELECT
+    *
+FROM
+    emp, dept
+;
+
+-- Ansi Cross Join
+SELECT
+    *
+FROM
+    emp CROSS JOIN  dept
+;
+
+/*
+    ANSI INNER JOIN
+        1. EQUI JOIN
+        
+        2. NON-EQUI JOIN
+        
+        3. SELF JOIN
+-----------------------------------------------------------------------------------------------        
+       INNER JOIN
+        
+        형식 ]
+            SELECT
+                조회할 필드,...
+            FROM
+                테이블1 INNER JOIN  테이블2
+            ON
+                조인조건식
+            ;
+        
+    참고 ]
+        ANSI JOIN 에서는 
+        JOIN 조건은 ON  절에 기술하고
+        일반 조건은 WHERE 절에 기술하는 것을 원칙으로 한다.
+            
+*/
+
+-- 사원의 이름, 직급, 부서이름을 조회하세요.
+SELECT
+    ename 사원이름, job 직급, dname 부서이름
+FROM
+    emp e INNER JOIN dept d
+ON
+    e.deptno = d.deptno
+;
+
+-- WARD 사원의 이름, 직급, 부서이름을 조회하세요.
+SELECT
+    ename 사원이름, job 직급, dname 부서이름
+FROM
+    emp e INNER JOIN dept d
+ON
+    e.deptno = d.deptno
+WHERE
+    ename = 'WARD'
+;
+
+/*
+    ANSI OUTER JOIN
+    ==> ORACLE OUTER JOIN고 같은 조인
+        조인 조건식에 만족하는 데이터만 조회하고
+        조인 조건식에 맞지 않는 데이터는 결과에서 제외한다.
+        이런 경우 조인 조건식에 포함되지 않는 데이터도 
+        조회에 포함되도록 하는 조건식이 OUTER JOIN 이다.
+        
+    형식 ]
+        SELECT
+        
+        FROM
+            테이블1 [ LEFT | RIGHT | FULL ] OUTER JOIN 테이블2
+        ON
+            조인조건식
+        ;
+        
+        참고 ]
+            LEFT | RIGHT : FULL 의 의미
+            오라클 조인의 (+) 와 정반대의 사용법
+            조건에 맞지 않아서 조회에서 제외된 데이터의 위치를 지정한다.
+            즉 왼쪽테이블에 있는 데이터를 포함할지
+                오른쪽테이블에 있는 데이터를 포함할지를 결정하는 것이다.
+                
+        참고 ]
+            오라클 조인에서는 풀아우터 조인을 사용하지 못했지만
+            ANSI JOIN 에서는 양쪽 모두 붙일 수 있도록 하고 있으며
+            이때 FULL 이라고 쓰면 된다.
+*/
+
+-- 사원의 사원이름, 직급, 상사번호, 상사이름, 상사직급을 조회하세요.
+
+SELECT
+    e.ename 사원이름, e.job 사원직급, e.mgr 상사번호, s.ename 상사이름, s.job 상사직급
+FROM
+    emp e LEFT OUTER JOIN emp s
+ON
+    e.mgr = s.empno
+;
+
+-- 사원의 사원이름, 직급, 급여, 부서번호, 부서위치, 급여등급을 조회하세요.
+SELECT
+    ename, job, sal, e.deptno, loc, grade
+FROM
+    dept d
+INNER JOIN 
+    emp e 
+ON
+    e.deptno = d.deptno
+INNER JOIN 
+    salgrade
+ON
+    sal BETWEEN losal AND hisal
+;
+/*
+    
+*/
 
 
