@@ -262,12 +262,138 @@ WHERE
         이름, 직급, 급여, 상사이름, 부서이름, 부서위치, 급여등급을 조회하는데
         회사 평균급여보다 급여가 높은 사원만 조회하세요.
 */
+SELECT 
+    e.ename, e.job, e.sal, s.ename, dname, loc, grade
+FROM
+    emp e, emp s, salgrade, dept d
+WHERE
+    e.mgr = s.empno
+    AND e.deptno = d.deptno
+    AND e.sal BETWEEN losal AND hisal
+    AND e.sal > (
+                SELECT
+                    AVG(sal)
+                FROM
+                    emp
+            )
+;
+/*
+    문제 8 ]
+        사원의 이름, 직급, 급여, 부서번호, 부서이름, 부서위치를 조회하세요.
+        단, 사원이 없는 부서도 같이 조회하세요.
+*/
+SELECT
+    ename, job, sal, d.deptno, dname, loc
+FROM
+    emp e, dept d
+WHERE
+    e.deptno(+) = d.deptno
+;
+
+-- 급여가 부서 평균급여보다 많은 사원의 
+--      사원번호, 사원이름, 급여, 부서번호, 
+--      부서평균급여, 부서사원수, 부서급여합계 를 조회하세요.
+/*
+    Inline View : 서브질의중 from 절에 위치하는 서브질의
+    
+    인라인 뷰도 조인에 사용할 수 있다.
+*/
+
+-- 10번 부서의 급여평균
+SELECT
+    avg(sal)
+FROM
+    emp
+WHERE
+    deptno = 30
+;
 
 
 
+SELECT
+    empno, ename, sal, e.deptno,
+    (
+        SELECT
+            ROUND(AVG(sal), 2)
+        FROM
+            emp
+        WHERE
+            deptno = e.deptno
+    ) 부서평균급여,
+    (
+        SELECT
+            COUNT(*)
+        FROM
+            emp
+        WHERE
+            deptno = e.deptno
+    ) 부서사원수,
+    (
+        SELECT
+            SUM(sal)
+        FROM
+            emp
+        WHERE
+            deptno = e.deptno
+    ) 부서급여합계
+FROM
+    emp e
+WHERE
+    sal > (
+                SELECT
+                    AVG(sal)
+                FROM
+                    emp
+                WHERE
+                    deptno = e.deptno
+            )
+;
 
 
+--      사원번호, 사원이름, 급여, 부서번호, 
+--      부서평균급여, 부서사원수, 부서급여합계 를 조회하세요.
+SELECT
+    empno, ename, sal, deptno, ROUND(avg, 2), cnt, sum
+FROM
+    emp,
+    (
+        SELECT
+            deptno dno, MAX(sal) max, MIN(sal) min, AVG(sal) avg, COUNT(*) cnt, SUM(sal) sum
+        FROM
+            emp
+        GROUP BY
+            deptno
+    )
+WHERE
+    deptno = dno
+;
 
+SELECT
+    deptno dno, MAX(sal) max, MIN(sal) min, AVG(sal) avg, COUNT(*) cnt, SUM(sal) sum
+FROM
+    emp
+GROUP BY
+    deptno
+;
+
+-- 사원수가 가장 많은 부서의 부서번호, 부서급여합계, 부서원수 를 조회하세요.
+
+SELECT
+    deptno 부서번호, SUM(sal) 부서급여합계, COUNT(*) 부서원수
+FROM
+    emp
+GROUP BY
+    deptno
+HAVING
+    count(*) = (
+                    SELECT
+                        max(count(*))
+                    FROM
+                        emp
+                    GROUP BY
+                        deptno
+                )
+;
 
 
 
