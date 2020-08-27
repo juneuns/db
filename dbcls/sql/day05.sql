@@ -628,3 +628,32 @@ FROM
     emp JOIN dept
 USING (deptno)
 ;
+
+--------------------------------------------------------------------------------
+
+-- 사원수가 가장 많은 부서의 사원중 부서평균급여보다 많이 받는 사원들의
+-- 사원이름, 직급, 급여, 부서번호, 부서평균급여, 부서원수 를 조회하세요.
+
+--------------------------------------------------------------------------------
+
+SELECT
+    *
+FROM
+    emp
+LEFT OUTER JOIN 
+    salgrade
+ON
+    sal BETWEEN losal AND hisal
+INNER JOIN
+    dept
+ON
+    emp.deptno = dept.deptno
+;
+
+INSERT INTO 
+    emp
+VALUES(
+    8000, 'DOOLY', 'DOOLY', 7839, SYSDATE, 10000, 5000, 10
+);
+
+rollback;
