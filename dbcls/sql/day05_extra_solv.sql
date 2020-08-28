@@ -6,19 +6,20 @@
 --------------------------------------------------------------------------------
 
 SELECT
-    ename 사원이름, job 직급, sal 급여, deptno 부서번호, ROUND(avg, 2) 부서평균급여, cnt 부서원수
+    ename 사원이름, job 직급, sal 급여, e.deptno 부서번호, 
+    ROUND(avg, 2) 부서평균급여, cnt 부서원수
 FROM
-    emp,
+    emp e,
     (
         SELECT
-            deptno dno, AVG(sal) avg, COUNT(*) cnt
+            deptno, AVG(sal) avg, COUNT(*) cnt
         FROM
             emp
         GROUP BY
             deptno
-    ) 
+    ) ee
 WHERE
-    deptno = dno
+    e.deptno = ee.deptno
     AND cnt =   (
                     SELECT
                         MAX(COUNT(*))
