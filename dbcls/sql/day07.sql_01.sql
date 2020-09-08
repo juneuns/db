@@ -625,3 +625,14 @@ CREATE TABLE kcolor(
         CONSTRAINT KCLR_CODE_FK REFERENCES abc(ano)
 );
 
+drop table kcolor;
+
+CREATE TABLE kcolor(
+    kno NUMBER(3)   --기본키
+        CONSTRAINT KCLR_NO_PK PRIMARY KEY,
+    rcode NUMBER(2),
+    cname VARCHAR2(10 CHAR)
+        CONSTRAINT KCLR_NAME_NN NOT NULL,
+    CONSTRAINT KCLR_CODE_FK FOREIGN KEY(rcode) REFERENCES abc(ano) -- 형식 2번
+);
+
