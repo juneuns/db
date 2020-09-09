@@ -866,7 +866,15 @@ DROP SEQUENCE seq01;
 -- 회원의 일련번호를 만들어주는 시퀀스를 만드세요.
 -- 단, 시작값은 1000, 최대값은 9999로 하고 최대값에 도달했을때 다시 반복하지 않도록하고, 
 -- 캐쉬기능 사용하지 않는 것으로 1씩 증가하게 만든다.
+CREATE SEQUENCE seq01
+    START WITH 1000
+    INCREMENT BY 1
+    MAXVALUE 9999
+    NOCYCLE
+    NOCACHE
+;
 
+SELECT seq01.nextval FROM dual;
 
 
 
