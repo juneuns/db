@@ -618,6 +618,263 @@ WHERE
 
 -- 사원테이블에서 입사일이 7번째로 입사한 사원의 사원번호, 사원이름, 입사일을 조회하세요.
 
+SELECT
+    rno, empno, ename, hiredate
+FROM
+    (
+        SELECT
+            rownum rno, empno, ename, hiredate
+        FROM
+            (
+                SELECT
+                    EMPNO, ENAME, HIREDATE
+                FROM
+                    EMP
+                ORDER BY
+                    HIREDATE DESC
+            )
+    )
+WHERE
+    rno = 7
+;
+
+
+-------------------------------------------------------------------------------------------------------------------------------
+/*
+    시퀀스(SEQUENCE)
+    ==> 테이블을 만들면 각 행을 구분해줄 PK가 필수적으로 존재해야 한다.
+        
+        예를 들어
+            사원을 관리하는 테이블을 만들면
+            각 사원을 구분할 수 있는 무엇인가가 있어야 한다는 말이다.
+            따라서 우리는 가지고 있는 EMP 테이블에서는
+            사원번호(EMPNO)를 이용해서 처리하고 있다.
+            
+        몇몇개의 테이블은 이것을 명확하게 구분하여 처리할 수 있지만 
+        그렇지 못한 테이블도 존재한다.
+        
+        예를 들자면
+            게시판 내용을 관리하는 테이블을 만든다면
+            제목, 글쓴이, 작성일, 본문, ... 이 있지만
+            이것 중에서 명확하게 그 행을 구분할 수 있는 역할을 하는 필드가 존재하지 않는다.
+            
+        이런 경우는 일련번호를 이용해서 이 역할을 하도록 하고 있다.
+        
+        따라서 그 일련번호는 절대로 중복되면 안되고( <== 기본키로 작동할 것이기 때문에... )
+        그리고 절대로 생략되어서도 안된다.
+        ==> 데이터베이스에 내용을 입력하는 사람이 문제가 발생할 수 있다.
+        
+        시퀀스는 이런 문제점을 해결하기 위해서 나타난 방법이다.
+        자동적으로 일련번호를 만들어주는 역을 하는 도구이다.
+        
+        방법
+            1. 시퀀스를 만들어 놓는다.
+            2. 데이터베이스에 일련번호의 입력이 필요하면 만들어 놓은 시퀀스에게 번호를 만들어 달라고 요청한다.
+                ==> 데이터를 insert 시킬때 일련번호부분은 시퀀스에게 부탁하면 된다.
+                
+                
+                
+    시퀀스 만드는 방법
+        
+        형식 ]
+            
+            CREATE SEQUENCE 시퀀스이름
+                START WITH 번호
+                ==> 발생할 일련번호의 시작값을 지정한다.
+                    만약 생략되면 1부터 시작한다.
+                INCREMENT BY 숫자
+                ==> 발생할 번호들의 순차적 증가값을 지정
+                    생략하면 1씩 증가
+                MAXVALUE 숫자 [ 혹은 NOMAXVALUE ]
+                MINVALUE 숫자 [ 혹은 NOMINVALUE ]
+                ==> 발생할 일련번호의 최대 최소값을 지정한다.
+                    생략하면 NO를 사용한다.
+                CYCLE 또는 NOCYCLE
+                ==> 발생한 일련번호가 최대값에 도달한이후 다시 처음부터 시작할지 여부를 설정
+                    생략하면 NOCYCLE
+                    
+                CACHE 또는 NOCACHE
+                ==> 일련번호 발생시 임시 메모리를 사용할지 여부를 지정한다.
+                    (미리 세션이 열렸을때 몇개를 만들어서 메모리에 준비시켜놓을지 여부)
+                    사용하면 속도는 빨라지지만 메모리가 줄고
+                    안하면 속도는 느려지지만 메모리는 줄지 않는다.
+            ;
+                
+            
+    
+*/
+
+-------------------------------------------------------------------------------------------------------------------------------
+-- EMP 테이블의 제약조건을 추가해주세요.
+-- PK, FK 를 추가해주세요.
+
+ALTER TABLE
+    emp
+ADD 
+    CONSTRAINT EMP_NO_PK PRIMARY KEY(empno)
+;
+
+ALTER TABLE
+    dept
+ADD
+    CONSTRAINT DEPT_NO_PK PRIMARY KEY(deptno)
+;
+
+
+ALTER TABLE
+    emp
+ADD
+    CONSTRAINT EMP_NO_FK FOREIGN KEY(deptno) REFERENCES dept(deptno)
+;
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+-- 문제 ] 1부터 1씩 증가하는 시퀀스 SEQ1 을 하나 만들어보자. 단, 최대값을 100으로 한다.
+
+CREATE SEQUENCE seq01
+    NOCYCLE
+    START WITH 1
+    INCREMENT BY 1
+    MAXVALUE 100
+    NOCACHE
+;
+
+-------------------------------------------------------------------------------------------------------------------------------
+
+/*
+    시퀀스 사용방법
+        ==> 데이터를 입력할 때 자동으로 일련번호를 발생하기 위해서 만든것.
+            따라서 INSERT 명령에 사용하며
+                
+                시퀀스이름.NEXTVAL
+            을 사용하면 된다.
+            
+    참고 ]
+        시퀀스가 가지는 변수
+            
+            NEXTVAL     - 시퀀스로 만들어진 최후 번호 다음번호를 만든다.
+            CURRVAL     - 시퀀스가 지금까지 최종적으로 만든 번호를 기억하는 변수
+                            *****
+                            CURRVAL은 세션이 열리면 비워져있다.
+                            CURRVAL은 NEXTVAL로 만들어진 번호를 기억하는 변수이다.
+*/
+
+SELECT seq01.currval from dual;
+
+SELECT seq01.nextval from dual;
+
+SELECT seq01.currval FROM dual;
+
+SELECT seq01.currval cur, seq01.NEXTVAL next FROM dual;
+
+-- 임시로 데이터를 입력할 테이블을 하나 만든다.
+CREATE TABLE tmp01(
+    no NUMBER(3)
+        CONSTRAINT TMP01_NO_PK PRIMARY KEY,
+    name VARCHAR2(10 CHAR) DEFAULT 'DOOLY'
+        CONSTRAINT TMP01_NAME_NN NOT NULL
+);
+
+-- 데이터를 채워본다.
+INSERT INTO
+    tmp01(no)
+VALUES(
+    seq01.currval
+);
+
+INSERT INTO
+    tmp01
+VALUES(
+    seq01.nextval, '마이콜'
+);
+
+INSERT INTO
+    tmp01
+VALUES(
+    seq01.nextval, '또치'
+);
+
+SELECT * FROM tmp01;
+
+
+INSERT INTO
+    tmp01
+VALUES(
+    seq01.nextval, 'aaaaaaaaaaa'
+);
+
+
+INSERT INTO
+    tmp01
+VALUES(
+    seq01.nextval, '도우너'
+);
+
+SELECT * FROM tmp01;
+
+commit;
+
+/*
+    시퀀스의 문제점
+        ==> 시퀀스는 테이블에 종속되지 않고 독립적으로 작동한다.
+            즉, 한번 만든 시퀀스는 여러 테이블에서 사용할 수 있다.
+            이때 어떤 테이블에서 시퀀스를 사용하던지 간에
+            nextval은 항상 다음번호를 만들어준다.
+            
+            그리고
+            입력에 실패하더라도 nextval을 호출하면
+            입력에 실패할 때 만든 번호의 다음번호를 만들게 된다.
+            
+            따라서 시퀀스를 사용하게되면 중간에 누락된 번호가 생길 수 있다.
+            
+            
+    시퀀스 수정하기
+       ==> 시퀀스도 개체이기 때문에 수정할 때는 DDL 명령을 사용해서 수정을 해야 한다.
+       
+        형식 ]
+            ALTER SEQUENCE 시퀀스이름
+                INCREMENT BY    숫자
+                MAXVALUE    숫자
+                MINVALUE    숫자
+                CYCLE 또는 NOCYCLE
+                CACHE 또는 NOCACHE
+             ;   
+        
+        참고 ]
+            시퀀스를 수정할 때는 시작번호는 수정할 수 없다.
+            왜냐하면 이미 발생한 번호가 있기 때문에...
+            시작번호는 이전에 만들어놓은 시작번호가 자동으로 시작번호가 된다.
+            
+    --------------------------------------------------------------------------------------------------------------------------
+    시퀀스 삭제하기
+        형식 ]
+            DROP SEQUENCE 시퀀스이름;
+*/
+
+-- SEQ01의 증가값을 3으로 수정해보자.
+ALTER SEQUENCE seq01
+    INCREMENT BY 3
+;
+
+SELECT seq01.currval FROM DUAL;
+
+SELECT seq01.nextval FROM dual;
+
+-- seq01 을 삭제
+DROP SEQUENCE seq01;
+
+-- 회원의 일련번호를 만들어주는 시퀀스를 만드세요.
+-- 단, 시작값은 1000, 최대값은 9999로 하고 최대값에 도달했을때 다시 반복하지 않도록하고, 
+-- 캐쉬기능 사용하지 않는 것으로 1씩 증가하게 만든다.
+
+
+
+
+
+
+
+
+
 
 
 
