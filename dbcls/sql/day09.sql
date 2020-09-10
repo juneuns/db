@@ -321,10 +321,150 @@ SELECT DISTINCT deptno 부서번호 FROM emp01; -- 0.055초
                 계정을 만든 직후에 따로 세션을 만들수 있는 권한을 부여받지 않으면
                 오라클에 접속할 수 없는 상태이다.
                 따라서 계정을 만들면 접속할 수 있는 권한을 반드시 부여해줘야 한다.
+                
+                
+-------------------------------------------------------------------------------------------------------------------------------
+
+    참고 ]
+        권한을 부여할 때 사용되는 옵션
+            
+            1. WITH ADMIN OPTION
+                ==> 관리자 권한을 위임 받을 수 있도록 하는 옵션
+                
+                예 ]
+                    test01 계정에게 테이블을 만들 수 있는 권한을 부여하고
+                    +
+                    관리자 권한도 부여해보자.
+                    
+                    GRANT create table TO test01 WITH ADMIN OPTION;
+                    
+            2. WITH GRANT OPTION
+                ==> 관리자에게 부여받은 권한을 다른 계정에게 전파할 수 있는 권한
+                
+    ---------------------------------------------------------------------------------------------------------------------------
+    
+        다른 계정의 테이블 사용하기
+            ==> 원칙적으로 하나의 계정은 자신의 계정에 있는 테이블만 사용할 수 있다.
+                
+                하지만 여러계정들이 다른 계정의 테이블을 공동으로 사용할 수 있다.
+                
+                이때 사용할 수 있는 권한을 설정해 줘야 한다.
+                
+                방법
+                    
+                    GRANT SELECT ON 계정.테이블이름 TO 계정;
+                    
+                    예 ]
+                        
+                        --> SELECT ANY TABLE 권한을 TEST01에게서 회수하고
+                        --> SCOTT계정이 가지고 있는 EMP테이블을 조회할 수 있는 권한을 TEST01 계정에게 부여해보자.
+                        
+                        REVOKE SELECT ANY TABLE FROM TEST01;
+                        
+                        GRANT SELECT ON scott.emp TO test01;
+                        
+    ----------------------------------------------------------------------------------------------------------------------
+    
+    권한 회수하기
+        
+        형식 ]
+            
+            REVOKE 권한이름 FROM 계정이름;
+            
+---------------------------------------------------------------------------------------------------------------------------
+    계정 삭제 하기
+        형식 ]
+            
+            DROP USER 계정이름 CASCADE;
+    
 */
 
 
 
+
+/*
+
+SQL> grant SELECT ON scott.emp TO test01 WITH ADMIN OPTION;
+grant SELECT ON scott.emp TO test01 WITH ADMIN OPTION
+                                         *
+1행에 오류:
+ORA-00993: GRANT 키워드가 없습니다
+
+
+SQL> grant SELECT ON scott.emp TO test01 WITH GRANT OPTION;
+
+권한이 부여되었습니다.
+
+SQL> conn test01/increpas
+연결되었습니다.
+SQL> grant select on scott.emp to test02;
+
+권한이 부여되었습니다.
+
+SQL> CONN SYS/INCREPAS AS SYSDBA
+연결되었습니다.
+SQL> DROP USER test03;
+
+사용자가 삭제되었습니다.
+
+SQL> GRANT CREATE TABLE TO test02;
+
+권한이 부여되었습니다.
+
+SQL> conn test02/increpas
+연결되었습니다.
+SQL> create table test(
+  2     no number(2)
+  3  );
+
+테이블이 생성되었습니다.
+
+SQL> insert into test values( 11 );
+insert into test values( 11 )
+            *
+1행에 오류:
+ORA-01950: 테이블스페이스 'USERS'에 대한 권한이 없습니다.
+
+
+SQL>
+SQL> conn sys/increpas as sysdba
+연결되었습니다.
+SQL> grant resource to test02;
+
+권한이 부여되었습니다.
+
+SQL> conn test02/increpas
+연결되었습니다.
+SQL> insert into test values( 11 );
+
+1 개의 행이 만들어졌습니다.
+
+SQL> insert into test values( 12 );
+
+1 개의 행이 만들어졌습니다.
+
+SQL> commit
+  2  ;
+
+커밋이 완료되었습니다.
+
+SQL> conn sys/increpas as sysdba;
+연결되었습니다.
+SQL>
+SQL> drop user test02;
+drop user test02
+*
+1행에 오류:
+ORA-01922: 'TEST02'(을)를 삭제하려면 CASCADE를 지정하여야 합니다
+
+
+SQL> drop user test02 cascade;
+
+사용자가 삭제되었습니다.
+
+
+
+*/
 
 
 
