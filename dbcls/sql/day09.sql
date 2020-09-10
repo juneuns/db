@@ -467,9 +467,221 @@ SQL> drop user test02 cascade;
 */
 
 
+-------------------------------------------------------------------------------------------------------------------------------
+/*
+    롤(ROLE)
+    ==> 관련된 권한을 모아놓은 객체(권들의 묶음, 세트)를 의미
+    
+    따라서 롤을 사용한 권한 부여란?
+    여러개의 권한을 한번에 동시에 부여하는 방법
+--------------------------------------------------------------------------------------------------------------------------------
+    롤을 이용한 권한 부여 방법
+        1. 이미 만들어진 롤을 이용하는 방법
+            
+            1) CONNECT
+            ==> 주로 CREATE 와 관련된 권한을 모아놓은 ROLE 이다.
+                세션 접속에 관련된 권한들의 묶음....
+            
+            2) RESOURCE
+            ==> 사용자 객체 생성에 관련된 권한을 모아놓은 ROLE
+                데이터를 다루는 권한들의 묶음
+            
+            3) DBA
+            ==> 관리자 계정에서 필요한 권한을 모아놓은 롤
+            
+            
+            권한 부여방법 ]
+                
+                GRANT 롤이름, 롤이름, ... to 계정이름;
+            
+            
+        2. 직접 롤을 만들어서 권한을 부여하는 방법
+            ==> 롤 안에 필요한 권한들을 사용자가 지정한 후 사용하는 방법
+            
+            방법 ]
+                
+                1) 롤을 만든다.
+                    CREATE ROLE 롤이름;
+                    
+                    
+                2) 롤에 권한을 부여한다.
+                    
+                    GRANT 권한, 권한, ... TO 롤이름;
+                    
+                3) 계정에게 만들어진 롤로 권한을 부여한다.
+                    
+                    GRANT 롤이름 TO 계정이름;
+
+*/
+
+
+--------------------------------------------------------------------------------------------------------------------------------
+--> system 계정에서 작업
+
+DROP USER test01 CASCADE;
+DROP USER test02 CASCADE;
+DROP USER test03 CASCADE;
+
+-- TEST01 계정을 만든다.
+CREATE USER test01 IDENTIFIED BY increpas;
+-- test01에 connect 롤을 부여한다.
+GRANT connect TO test01;
+
+--> cmd 창에서 작업
+sqlplus test01/increpas
+--> 접속이 되면 create session 권한을 가지고 있다는 것이 된다.
+
+--> system 계정에서
+GRANT resource TO test01;
+
+--> cmd 창 sqlplus에서
+create table tmp00(
+    no NUMBER(2)
+);
+
+--> system 계정에서
+GRANT select any table TO test01;
+
+--> SYSTEM 계정에서
+DROP USER test02;
+CREATE USER test02 IDENTIFIED BY increpas;
+
+--권한 부여
+GRANT connect, resource, select any table TO test02;
+
+--------------------------------------------------------------------------------------------------------------------------------
 
 
 
+--------------------------------------------------------------------------------------------------------------------------------
+-- 롤을 만들어서 권한을 부여하는 방법
+
+--> test02 계정을 만든다.
+DROP USER test02 CASCADE;
+CREATE USER test02 IDENTIFIED BY increpas;
+
+--> 롤을 만든다. LOL 로 만든다.
+CREATE ROLE lol;
+-- 롤에 권한을 부여한다.
+GRANT connect, resource, select any table TO lol;
+
+-- 계정에 만들어진 롤로 권한을 부여한다.\
+GRANT lol TO test02;
+
+--------------------------------------------------------------------------------------------------------------------------------
+
+/*
+    롤을 회수하는 방법
+        
+        REVOKE 롤이름 FROM 계정이름;
+        
+        
+    롤 삭제하는 방법
+        
+        DROP ROLE 롤이름;
+*/
+REVOKE lol FROM test02;
+
+DROP ROLE lol;
+
+
+--------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------
+
+/*
+    동의어(SYNONYM)
+    ==> 테이블 자체에 별칭을 부여해서 
+        여러 사용자가 각각의 이름으로 하나의 테이블을 사용하도록 하는 것.
+        
+        즉, 실제 객체(테이블, 뷰, 시퀀스, 프로시저) 등의 이름을 감추고
+        사용자에게 별칭을 알려줘서 
+        객체를 보호하는 방법
+        
+        우리가 포털사이트에서 우리의 이름대신 id를 사용하는 것과 마찬가지로
+        정보 보호를 목적으로 실제 이름을 감추기 위한 방법이다.
+        
+    주로 다른 계정을 사용하는 사용자가
+    테이블 이름을 알면 곤란하기 때문에
+    이들에게는 거짓 테이블을 알려주어서
+    실제 테이블 이름을 감추기 위한 목적으로 사용한다.
+    
+    형식 ]
+        CREATE [ PUBLIC ] SYNONUM 동의어이름
+        FOR
+            실제객체이름;
+            
+            
+        PUBLIC - 생략되면 이 동의어는 같은 계정에서만 사용하는 동의어가 된다.
+                (권한을 주면 다른 계정에서도 사용할 수 있긴 하다.)
+                
+                사용되면 자동적으로 다른계정에서도 이 동의어를 이용해서 테이블을 사용할 수 있게 된다.
+    
+        
+*/
+--> SYSTEM 계정에서 실행
+GRANT create any synonym TO hello;
+
+--> hello 계정에서 실행
+CREATE SYNONYM T_EMP
+FOR
+    scott.EMP;
+
+SELECT * FROM T_EMP;
+
+
+/*
+    PUBLIC 동의어 만들기
+    ==> 모든 계정에서 특정 객체(테이블, 뷰, 시퀀스, ...) 을 사용할 수 있도록 하는 것...
+    
+    예 ] hello 계정이 가지고 있는 뷰 dsal을 deptsal로 별칭을 만들어서 모든 계정에서 사용하도록 해보자.
+    
+        방법 ]
+            1. 객체 소유권자가 사용할 객체를 public 사용이 가능하도록 등록한다.
+            2. 관리자계정에서 사용할 객체의 별칭을 만든다.
+            
+            3. 사용할 때는 별칭으로 사용하면 된다.
+*/
+
+--> 1.
+GRANT select ON dsal TO public;
+
+
+--> system 계정으로 실행한다.
+
+-- 2.
+CREATE PUBLIC SYNONYM dept_sal
+FOR hello.dsal;
+
+
+--> 3. hr 계정에서 실행
+SELECT
+    *
+FROM
+    dept_sal
+;
+
+
+drop public synonym dept_sal;
+
+grant select on scott.emp to public;
+
+create public synonym s_emp
+for
+    scott.emp;
+
+-- hr
+select * from s_emp;
+
+drop public synonym s_emp;
+
+revoke select on scott.emp from public;
+
+
+
+grant create synonym, public to scott;
+
+
+grant select on emp to public;
 
 
 
