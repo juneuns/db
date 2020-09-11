@@ -72,12 +72,206 @@
                 실행부....
             END;
             /
+            
+            
+        
 */
 
 
+-- 1. 무명 프로시저
+DECLARE
+    -- 선언부
+    x NUMBER;
+BEGIN
+    x := 1000; 
+    DBMS_OUTPUT.PUT_LINE('결과 = '); 
+    DBMS_OUTPUT.PUT_LINE(x);
+END;
+/ 
+-- PL/SQL 대입연산사 - :=
+-- DBMS_OUTUPT.PUT_LINE() : JAVA의 println() 과 같은 기능의 함수
+-- 프로시저의 끝 부분에는 반드시 / 가 붙여져야 한다.
 
 
+/*
+    무명프로시저 사용방법
+        1. 프로시저를 만들어서 파일에 저장해 놓는다.
+            이때 확장자는 중요하지 않다.
+        2. sqlplus 에서 실행한다.
+            1. @파일경로
+                ==> 실행결과만 출력해준다.
+                예 ]
+                    @D:\class\db\git\db\dbcls\sql\test_prog01.sql
+            2. run 파일경로
+                ==> 실행코드와 결과를 출력해준다.
+                예 ]
+                    run D:\class\db\git\db\dbcls\sql\test_prog01.sql
+                
+            3. get 파일경로
+                ==> 실행코드만 보여준다.
+                    get D:\class\db\git\db\dbcls\sql\test_prog01.sql
+            
+*/
 
+
+/*
+    sqldeveloper 에서 프로시저 실행화면을 보는 방법
+        '보기' 메뉴에서 --> 'DBMS 출력' 을 선택 --> 'DBMS 출력' 창에서 '+'을 클릭해서 실행접속을 추가해준다.
+        
+    sqlplus 에서 프로시저 실행결과 보는 방법
+        set serveroutput on
+    을 실행해주면 된다.
+*/
+
+-- 파일에 저장된 무명 프로시저 실행하는 방법
+-- @D:\class\db\git\db\dbcls\sql\test_prog01.sql
+
+
+--------------------------------------------------------------------------------------------------------------------------------
+/*
+    2. 함수 만들기
+        ==> 함수는 오라클 내부에 함수를 저장한 후
+            다른 질의 명령을 사용할 때 부가적으로 사용하는 것.
+            
+        형식 ]
+            
+            CREATE OR REPLACE FUNCTION 함수이름
+            RETURN 타입 
+            AS
+                변수선언
+            BEGIN
+                실행부
+            END;
+            /
+            
+        참고 ]
+            자바와 마찬가지로 
+            함수는 아무리 훌륭한 기능을 가지고 있어도
+            호출하지 않으면 무용지물이다.
+*/
+
+-- 호출하면 999를 반환해주는 함수
+CREATE OR REPLACE FUNCTION func01
+RETURN NUMBER
+AS
+    x NUMBER;
+BEGIN
+    x := 999;
+    RETURN x;
+END;
+/
+
+SELECT func01() 숫자 FROM dual;
+
+SELECT
+    empno 사원번호, ename 사원이름, sal 사원급여, comm 사원커미션, NVL(comm, 0) + func01 희망고문
+FROM
+    emp
+;
+
+/*
+    3. 일반(저장) 프로시저
+        형식 ]
+            
+            CREATE OR REPLACE PROCEDURE 프로시저이름
+            ( 변수 선언 )
+            AS
+            BEGIN
+                실행부
+            END;
+            /
+            
+        ==> 컴파일 해주고
+        
+        실행은 함수처럼 호출해서 실행해야 한다.
+        
+        실행형식 ]
+            
+            execute 프로시저이름(파라미터);
+            exec 프로시저이름(파라미터);
+        
+*/
+
+
+-- 실습 준비 ] 이름, 나이를 저장한 PEOPLE 테이블을 만든다.
+CREATE TABLE people(
+    name VARCHAR2(10 CHAR),
+    age NUMBER(3)
+);
+
+INSERT INTO people VALUES('둘리', 999);
+INSERT INTO people VALUES('희동이', 3);
+
+-- 나이를 입력 받아서 그 나이에 해당하는 사람의 나이를 10살로 수정하는 프로시저를 만들어보자.
+
+CREATE OR REPLACE PROCEDURE proc01
+( inage IN INTEGER)
+AS
+BEGIN
+    UPDATE
+        people
+    SET
+        age = 10
+    WHERE
+        age = inage
+    ;
+    
+    DBMS_OUTPUT.PUT_LINE('*** 프로시저 실행 완료 ***');
+END;
+/
+
+-- people 테이블 조회
+select * from people;
+
+exec proc01(999);
+
+select * from people;
+
+execute proc01(3);
+
+-- 일반 프로시저를 만드는데 이름을 입력받아서 그 사람의 나이를 5로 변경하는 프로시저를 작성해서 실행하세요.
+-- 프로시저 이름은 proc02 로 한다.
+
+CREATE OR REPLACE PROCEDURE proc02(
+    iname IN VARCHAR2
+) AS
+BEGIN
+    UPDATE
+        people
+    SET
+        age = 5
+    WHERE
+        name = iname
+    ;
+    
+    DBMS_OUTPUT.PUT_LINE('***** [ ' || iname || ' ] 의 나이를 5세로 수정했습니다. *****');
+END;
+/
+
+-- 실행
+exec proc02('둘리');
+
+select * from people;
+
+exec proc02('희동이');
+
+select * from people;
+
+-- emp01 테이블의 데이터를 모두 지우고, emp테이블의 데이터로 대체하는 프로시저(reemp)를 제작해서 실행하세요.
+CREATE OR REPLACE PROCEDURE reemp
+AS
+BEGIN
+    DELETE FROM emp01;
+    
+    INSERT INTO
+        emp01
+    SELECT * FROM emp;
+END;
+/
+
+exec reemp;
+
+select * from emp01;
 
 
 
