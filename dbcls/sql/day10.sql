@@ -461,6 +461,8 @@ CREATE OR REPLACE PROCEDURE sal_up02(
 IS
     cnt NUMBER;
 BEGIN
+    DBMS_OUTPUT.ENABLE;
+    
     SELECT
         count(*)
     INTO
@@ -492,23 +494,230 @@ select * from emp01;
         사원번호를 입력하면 사원의 이름, 직급, 부서이름, 부서위치를 출력해주는 프로시저(e_info02)를 작성해서 실행하세요.
 */
 
+CREATE OR REPLACE PROCEDURE e_info02(
+    ino NUMBER
+)
+IS
+    name VARCHAR2(10 CHAR);
+    jikgb VARCHAR2(10 CHAR);
+    buseo VARCHAR2(20 CHAR);
+    weechi VARCHAR2(20 CHAR);
+BEGIN
+    DBMS_OUTPUT.ENABLE;
+    
+    SELECT
+        ename, job, dname, loc
+    INTO
+        name, jikgb, buseo, weechi
+    FROM
+        emp e, dept d
+    WHERE
+        e.deptno = d.deptno
+        AND empno = ino
+    ;
+    
+    -- 출력한다.
+    DBMS_OUTPUT.PUT_LINE(LPAD('=', 42, '='));
+    DBMS_OUTPUT.PUT_LINE(' 사원번호 | 사원이름 | ' || RPAD(LPAD('부서이름', 10, ' '), 12, ' ') || ' | 부서위치 ');
+    DBMS_OUTPUT.PUT_LINE(LPAD('-', 45, '-'));
+    DBMS_OUTPUT.PUT_LINE(RPAD(TO_CHAR(ino), 9, ' ') || ' | '|| RPAD(name, 8, ' ') ||' | '|| RPAD(buseo, 12, ' ') || ' | ' || RPAD(weechi, 8, ' '));
+END;
+/
+
+-- 실행
+exec e_info02(7839);
+
+----------------------------------------------------------------------------------------------------------------------------------
+/*
+    INTO
+        ==> SELECT 된 결과를 출력하기 위해서는 변수에 기억시켜야 하는데
+            조회된 결과를 변수에 옮기기 위한 예약어가 INTO 이다.
+            
+            규칙 ]
+                SELECT 절의 필드의 개수, 순서, 타입이 동일해야 한다.
+                
+---------------------------------------------------------------------------------------------------------------------------------
+    
+    %TYPE에 의한 변수 선언
+        ==> 변수를 선언할 때 질의의 결과와 연관된 변수가 존재한다.
+            이때 크기가 다르면 문제 발생할 수 있다.
+            그리고 이 문제는 데이터베이스가 변경이 되면 이미 작성해둔 프로시저의 변수들도 수정해야 한다.
+            
+            이런 경우를 대비해서 테이블의 필드의 타입과 길이를 자동으로 지정해서 변수를 선언하는 방법이
+                %TYPE 
+            에 의한 변수 선언이다.
+            
+            이것은 이미 만들어진 타입을 그대로 복사해서 
+            동일한 타입의 변수로 만드는 방법이다.
+            
+            1. 이미 만들어진 변수와 동일한 타입으로 만드는 방법
+                
+                나중변수    이전변수%TYPE;
+                
+                예 ]
+                    ino NUMBER(3);
+                    vno     ino%TYPE; -- ino 와 동일한 타입과 길이로 변수 vno를 만든다.
+                    
+            2. 데이터베이스에 정의된 필드와 동일한 타입으로 만드는 방법
+                
+                형식 ]
+                    변수이름    테이블이름.필드이름%TYPE;
+                    
+                예 ]
+                    buseo   dept.dname%TYPE;
+                    --> buseo 변수를 dept테이블의 dname과 같은 타입, 크기로 변수를 만드세요.
+*/
+
+
+/*
+    문제 2 - 1 ]
+        사원번호를 입력하면 사원의 이름, 직급, 부서이름, 부서위치를 출력해주는 프로시저(e_info021)를 작성해서 실행하세요.
+*/
+
+CREATE OR REPLACE PROCEDURE e_info021(
+    -- 입력받을 사원번호 기억할 변수
+    ino IN emp.empno%TYPE
+)
+IS
+    -- 출력에 사용할 변수 선언
+    name emp.ename%TYPE;
+    jikgb emp.job%TYPE;
+    buseo dept.dname%TYPE;
+    weechi dept.loc%TYPE;
+BEGIN
+    -- dbms 출력 활성화
+    DBMS_OUTPUT.ENABLE;
+    
+    SELECT
+        ename, job, dname, loc
+    INTO
+        name, jikgb, buseo, weechi
+    FROM
+        emp e, dept d
+    WHERE
+        e.deptno = d.deptno
+        AND empno = ino
+    ;
+    
+    -- 출력한다.
+    DBMS_OUTPUT.PUT_LINE(LPAD('=', 47, '='));
+    DBMS_OUTPUT.PUT_LINE(' 사원번호 | 사원이름 | ' || RPAD(LPAD('부서이름', 10, ' '), 12, ' ') || ' | 부서위치 ');
+    DBMS_OUTPUT.PUT_LINE(LPAD('-', 47, '-'));
+    DBMS_OUTPUT.PUT_LINE(LPAD(RPAD(TO_CHAR(ino), 6, ' '), 9, ' ') || ' | '|| RPAD(name, 8, ' ') || 
+                                ' | '|| LPAD(RPAD(buseo, 11, ' '), 12, ' ') || ' | ' || RPAD(weechi, 8, ' '));
+    
+    DBMS_OUTPUT.PUT_LINE(LPAD('#', 47, '#'));
+END;
+/
+
+-- 실행
+exec e_info021(7934);
+
+/*
+    문제 3 ]
+            사원의 이름을 입력하면 사원번호, 사원이름, 직급, 급여, 급여등급을 출력해주는 
+            프로시저(e_info03)를 작성하고 실행하세요.
+*/
+CREATE OR REPLACE PROCEDURE e_info03(
+    name IN emp01.ename%TYPE
+)
+IS
+    eno emp01.empno%TYPE;
+    ejob emp01.job%TYPE;
+    esal emp01.sal%TYPE;
+    grd salgrade.grade%TYPE;
+BEGIN
+    DBMS_OUTPUT.ENABLE;
+    
+    SELECT
+        empno, job, sal, grade
+    INTO
+        eno, ejob, esal, grd
+    FROM
+        emp01, salgrade
+    WHERE
+        sal BETWEEN losal AND hisal
+        AND ename = name
+    ;
+    
+    -- 출력
+    DBMS_OUTPUT.PUT_LINE('사원번호 : ' || eno);
+    DBMS_OUTPUT.PUT_LINE('사원이름 : ' || name);
+    DBMS_OUTPUT.PUT_LINE('사원직급 : ' || ejob);
+    DBMS_OUTPUT.PUT_LINE('사원급여 : ' || esal);
+    DBMS_OUTPUT.PUT_LINE('급여등급 : ' || grd);
+END;
+/
+
+-- 실행
+execute e_info03('SMITH');
+
+/*
+    문제 4 ]
+            사원의 번호를 입력하면
+            사원이름, 사원직급, 상사이름
+            을 출력해주는 프로시저(e_info04)를 작성하고 실행하세요.
+*/
+
+--------------------------------------------------------------------------------------------------------------------------------
+
+/*
+    %ROWTYPE을 이용한 변수선언
+    ==> %TYPE에 의한 변수선언은 테이블의 필드와 동인한 타입의 변수를 만드는 방법이지만
+        %ROWTYPE은 테이블 전체의 데이터 형태를 복사해서 사용하는 방법이다.
+        
+        형식 ]
+            
+            변수이름    테이블이름%ROWTYPE;
+            
+        ==> 이 변수는 자바의 클래스처럼 내부에 멤버 변수를 가지게 된다.
+            따라서 변수를 사용할 때는
+                변수이름.멤버변수
+            의 형식으로 사용해야 한다.
+*/
 
 
 
+-- %ROWTYPE
+CREATE OR REPLACE PROCEDURE e_info022(
+    -- 입력받을 사원번호 기억할 변수
+    ino IN emp.empno%TYPE
+)
+IS
+    -- 출력에 사용할 변수 선언
+    dmp emp%ROWTYPE;
+    dpt dept%ROWTYPE;
+BEGIN
+    -- dbms 출력 활성화
+    DBMS_OUTPUT.ENABLE;
+    
+    SELECT
+        ename, job, dname, loc
+    INTO
+        dmp.ename, dmp.job, dpt.dname, dpt.loc
+    FROM
+        emp e, dept d
+    WHERE
+        e.deptno = d.deptno
+        AND empno = ino
+    ;
+    
+    -- 출력한다.
+    DBMS_OUTPUT.PUT_LINE(LPAD('=', 47, '='));
+    DBMS_OUTPUT.PUT_LINE(' 사원번호 | 사원이름 | ' || RPAD(LPAD('부서이름', 10, ' '), 12, ' ') || ' | 부서위치 ');
+    DBMS_OUTPUT.PUT_LINE(LPAD('-', 47, '-'));
+    DBMS_OUTPUT.PUT_LINE(LPAD(RPAD(TO_CHAR(ino), 6, ' '), 9, ' ') || ' | '|| RPAD(dmp.ename, 8, ' ') || 
+                                ' | '|| LPAD(RPAD(dpt.dname, 11, ' '), 12, ' ') || ' | ' || RPAD(dpt.loc, 8, ' '));
+    
+    DBMS_OUTPUT.PUT_LINE(LPAD('#', 47, '#'));
+END;
+/
+
+-- 실행
+exec e_info022(7934);
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+-- 위의 문제들을 rowtype을 이용해서 처리하세요.
 
 
 
