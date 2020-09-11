@@ -455,6 +455,42 @@ exec e_info01(7499);
     문제 1 ]
         emp01 테이블에서 이름이 특정 글자수인 사람들의 급여를 20% 인상하는 프로시저(sal_up02)를 작성해서 실행하세요.
 */
+CREATE OR REPLACE PROCEDURE sal_up02(
+    inlen NUMBER
+)
+IS
+    cnt NUMBER;
+BEGIN
+    SELECT
+        count(*)
+    INTO
+        cnt
+    FROM
+        emp01
+    WHERE
+        length(ename) = inlen
+    ;
+    
+    UPDATE
+        emp01
+    SET
+        sal = sal * 1.2
+    WHERE
+        LENGTH(ename) = inlen
+    ;
+    
+    DBMS_OUTPUT.PUT_LINE('이름이 ' || inlen || ' 글자인 사원 ' || cnt ||' 명의 급여를 20% 인상했습니다.');
+END;
+/
+
+exec sal_up02(5);
+
+select * from emp01;
+
+/*
+    문제 2 ]
+        사원번호를 입력하면 사원의 이름, 직급, 부서이름, 부서위치를 출력해주는 프로시저(e_info02)를 작성해서 실행하세요.
+*/
 
 
 
