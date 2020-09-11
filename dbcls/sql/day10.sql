@@ -259,7 +259,7 @@ select * from people;
 
 -- emp01 테이블의 데이터를 모두 지우고, emp테이블의 데이터로 대체하는 프로시저(reemp)를 제작해서 실행하세요.
 CREATE OR REPLACE PROCEDURE reemp
-AS
+IS
 BEGIN
     DELETE FROM emp01;
     
@@ -657,6 +657,9 @@ execute e_info03('SMITH');
             사원의 번호를 입력하면
             사원이름, 사원직급, 상사이름
             을 출력해주는 프로시저(e_info04)를 작성하고 실행하세요.
+            
+            힌트 ]
+                OUTER JOIN 사용하세요.
 */
 
 --------------------------------------------------------------------------------------------------------------------------------
@@ -720,7 +723,11 @@ exec e_info022(7934);
 -- 위의 문제들을 rowtype을 이용해서 처리하세요.
 
 
-
+BEGIN
+    DBMS_OUTPUT.ENABLE;
+    DBMS_OUTPUT.PUT_LINE('프로시저 실행');
+END;
+/
 
 
 
