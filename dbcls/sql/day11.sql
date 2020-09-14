@@ -13,6 +13,22 @@
             의미 ]
                 질의 명령의 결과를 변수에 한줄씩 기억한 후
                 원하는 내용을 처리하도록 한다.
+                
+            참고 ]
+                FOR 명령에서 사용할 변수는 미리 만들지 않아도 된다.
+                이 변수는 자동적으로 %ROWTYPE 변수가 된다.
+                %ROWTYPE 변수는 묵시적으로 멤버변수를 가지게 된다.
+                
+                예 ]
+                    
+                    FOR e IN (SELECT * FROM emp) LOOP
+                        처리내용
+                    END LOOP;
+                    ==> 이때 변수 e 는 자동적으로  %ROWTYPE 변수가 된고
+                        e에는 멤버변수 empno, ename, sal, mgr, .... 을 가지게 된다.
+                        따라서 꺼낼때는 
+                            e.empno, e.ename, e.sal,....
+                        의 형식으로 꺼내서 사용해야 한다.
         
         형식 2 ]
             
@@ -27,17 +43,16 @@
 */
 
 -- 시원들의 이름을 출력하는 무명 프로시저를 작성하세요.
-/*
-DECLARE 
+
+DECLARE
 BEGIN
     DBMS_OUTPUT.ENABLE;
-    FOR name IN (SELECT ename FROM emp) LOOP
-        DBMS_OUTPUT.PUT_LINE(name);
+    FOR data IN (SELECT rownum rno, ename, 100 num FROM emp) LOOP
+        DBMS_OUTPUT.PUT_LINE(data.rno || ' 번째 사원 ] ' || data.ename || ' - ' || (data.num + data.rno));
     END LOOP;
 END;
 /
 
-*/
 
 -- 1 부터 10 까지 출력해주는 무명 프로시저를 작성하고 실행하세요.
 BEGIN
@@ -161,9 +176,72 @@ exec e_inof03(7902);
 exec e_inof03(8000);
 
 
+/*
+    문제 1 ]
+        FOR ~ LOOP 문을 사용해서 구구단 5단을 출력하세요.
+        
+        심화 ]
+            구구단을 출력하세요.
+*/
+DECLARE
+    dan NUMBER := 5; -- 내부변수 선언 및 초기화
+BEGIN
+    FOR gop IN 1 .. 9 LOOP
+        DBMS_OUTPUT.PUT_LINE(dan || ' x ' || gop || ' = ' || (dan * gop));
+    END LOOP;
+END;
+/
 
+DECLARE
+BEGIN
+    FOR dan IN 2 .. 9 LOOP
+        FOR gop IN 1 .. 9 LOOP
+            DBMS_OUTPUT.PUT_LINE(dan || ' x ' || gop || ' = ' || (dan * gop));
+        END LOOP;
+        DBMS_OUTPUT.PUT_LINE('');
+    END LOOP;
+END;
+/
+/*
+    문제 2 ]
+        
+        IF ~ ELSIF 구문을 사용해서
+            emp01 테이블의 사원의 정보를 조회하는데
+            사원번호, 사원이름, 부서번호, 부서이름
+            의 형식으로 조회하고
+            부서번호가 10 이면 '회계부'
+                        20 - 개발부
+                        30 - 영업부
+                        40 - 운영부
+            로 출력하세요.
+*/
 
+DECLARE
+    part VARCHAR2(20 CHAR);
+BEGIN
+    DBMS_OUTPUT.PUT_LINE(LPAD('=', 45, '='));
+    DBMS_OUTPUT.PUT_LINE(' 사원번호 | 사원이름 | ' || RPAD(LPAD('부서번호', 10, ' '), 12, ' ') || ' | 부서이름 ');
+    DBMS_OUTPUT.PUT_LINE(LPAD('-', 45, '-'));
+    FOR e IN (SELECT empno eno, ename name, deptno dno FROM emp01) LOOP
+        IF (e.dno = 10) THEN
+            part := '회계부';
+        ELSIF (e.dno = 20) THEN
+            part := '개발부';
+        ELSIF (e.dno = 30) THEN
+            part := '영업부';
+        ELSE
+            part := '운영부';
+        END IF;
+        
+        DBMS_OUTPUT.PUT_LINE(RPAD(TO_CHAR(e.eno), 9, ' ') || ' | '|| RPAD(e.name, 8, ' ') ||
+                                    ' | '|| RPAD(e.dno, 12, ' ') || ' | ' || RPAD(part, 8, ' '));
+        DBMS_OUTPUT.PUT_LINE(LPAD('-', 45, '-'));
+    END LOOP;
+END;
+/
 
+-- 입사 년도를 입력하면 행당 해에 입사한 사원들의 사원번호, 사원이름, 입사일 을 출력하는 
+--  저장프로시저(proc01)을 제작하고 실행하세요.
 
 
 
