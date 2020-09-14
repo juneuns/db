@@ -766,6 +766,57 @@ exec proc07(20);
         을 출력해주는 프로시저를 제작하고 실행하세요.
         단, 레코드 타입으로 처리하세요.
 */
+CREATE OR REPLACE PROCEDURE proc08(
+    name emp01.ename%TYPE
+)
+IS
+    -- 1. 레코드타입을 만든다.
+    TYPE rec IS RECORD(
+        job emp01.job%TYPE,
+        sal emp01.sal%TYPE,
+        grd salgrade.grade%TYPE
+    );
+    -- 2. 레코드타입의 변수를 만든다.
+    vemp rec;
+BEGIN
+    -- 3. 질의명령을 보내고 결과를 레코드타입 변수에 담는다.
+    SELECT
+        job, sal, grade
+    INTO
+        -- vemp.job, vemp.sal, vemp.grd
+        vemp
+    FROM
+        emp01, salgrade
+    WHERE
+        sal BETWEEN losal AND hisal
+        AND ename = name
+    ;
+    -- 4. 출력한다.
+    DBMS_OUTPUT.PUT_LINE(name || ' | ' || vemp.job || ' | ' || vemp.sal
+                                 || ' | ' || vemp.grd);
+END;
+/
+
+exec proc08('SMITH');
+exec proc08('KING');
+
+SELECT
+    job, sal, grade grd
+FROM
+    emp01, salgrade
+WHERE
+    sal BETWEEN losal AND hisal
+    AND ename = 'KING'
+;
+
+
+/*
+    문제 9 ]
+        사원번호를 입력하면
+            사원이름, 사원직급, 부서번호, 부서위치
+        를 출력해주는 프로시저(proc10)을 제작하고 실행하세요.
+*/
+
 
 
 
