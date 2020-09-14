@@ -220,7 +220,7 @@ DECLARE
     part VARCHAR2(20 CHAR);
 BEGIN
     DBMS_OUTPUT.PUT_LINE(LPAD('=', 45, '='));
-    DBMS_OUTPUT.PUT_LINE(' 사원번호 | 사원이름 | ' || RPAD(LPAD('부서번호', 10, ' '), 12, ' ') || ' | 부서이름 ');
+    DBMS_OUTPUT.PUT_LINE(' 사원번호 | 사원이름 | ' || RPAD(LPAD('부서번호', 8, ' '), 10, ' ') || ' | 부서이름 ');
     DBMS_OUTPUT.PUT_LINE(LPAD('-', 45, '-'));
     FOR e IN (SELECT empno eno, ename name, deptno dno FROM emp01) LOOP
         IF (e.dno = 10) THEN
@@ -234,20 +234,59 @@ BEGIN
         END IF;
         
         DBMS_OUTPUT.PUT_LINE(RPAD(TO_CHAR(e.eno), 9, ' ') || ' | '|| RPAD(e.name, 8, ' ') ||
-                                    ' | '|| RPAD(e.dno, 12, ' ') || ' | ' || RPAD(part, 8, ' '));
+                                    ' | '|| RPAD(e.dno, 10, ' ') || ' | ' || RPAD(part, 8, ' '));
         DBMS_OUTPUT.PUT_LINE(LPAD('-', 45, '-'));
     END LOOP;
 END;
 /
 
--- 입사 년도를 입력하면 행당 해에 입사한 사원들의 사원번호, 사원이름, 입사일 을 출력하는 
---  저장프로시저(proc01)을 제작하고 실행하세요.
+/*
+    문제 3 ]
+        입사 년도를 입력하면 행당 해에 입사한 사원들의 사원번호, 사원이름, 입사일 을 출력하는 
+        저장프로시저(proc01)을 제작하고 실행하세요.
+*/
+
+
+-- 81년에 입사한 사원조회
+SELECT
+    empno, ename, hiredate
+FROM
+    emp01
+WHERE
+    TO_CHAR(hiredate, 'yy') = '81'
+;
 
 
 
+CREATE OR REPLACE PROCEDURE proc01(
+    indate VARCHAR2
+)
+IS 
+BEGIN
+    DBMS_OUTPUT.PUT_LINE(' 사원번호 | 사원이름 | 입사년도 ');
+    DBMS_OUTPUT.PUT_LINE(RPAD('-', 30, '-'));
+    FOR data IN (SELECT empno eno, ename name, hiredate hdate FROM emp01 WHERE TO_CHAR(hiredate, 'YY') = indate) LOOP
+        DBMS_OUTPUT.PUT_LINE(data.eno || ' | ' || data.name || ' | ' || TO_CHAR(data.hdate, 'yyyy'));
+        DBMS_OUTPUT.PUT_LINE(RPAD('-', 30, '-'));
+    END LOOP;
+END;
+/
+
+exec proc01('82');
 
 
+/*
+    문제 4 ]
+        부서번호를 입력하면 해당 부서 사원들의
+            사원번호, 사원이름, 직급, 부서번호, 부서이름 
+        을 출력하는 저장프로시저(proc02)를 제작하고 실행하세요.
+*/
 
-
+/*
+    문제 5 ]
+        사원이름을 입력하면 해당 사원의 소속부서의 
+            부서최대급여, 부서최소급여, 부서평균급여, 부서급여합계, 부서원수
+        를 출력하는 저장프로시저(proc03)를 제작하고 실행하세요.
+*/
 
 
