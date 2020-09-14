@@ -272,6 +272,7 @@ BEGIN
 END;
 /
 
+exec proc01('81');
 exec proc01('82');
 
 
@@ -281,6 +282,48 @@ exec proc01('82');
             사원번호, 사원이름, 직급, 부서번호, 부서이름 
         을 출력하는 저장프로시저(proc02)를 제작하고 실행하세요.
 */
+CREATE OR REPLACE PROCEDURE proc02(
+    dno emp01.deptno%TYPE
+)
+IS
+BEGIN    
+    FOR data IN
+                (
+                    SELECT
+                        empno, ename, job, e.deptno, dname
+                    FROM
+                        emp01 e, dept d
+                    WHERE
+                        e.deptno = d.deptno
+                        AND e.deptno = 20
+                ) LOOP
+        DBMS_OUTPUT.PUT_LINE('');
+    END LOOP;
+END;
+/
+
+
+CREATE OR REPLACE PROCEDURE proc02(
+    dno emp01.deptno%TYPE
+)
+IS
+    buseo dept.dname%TPYE;
+BEGIN
+    SELECT
+        dname
+    INTO
+        buseo
+    FROM
+        dept
+    WHERE
+        deptno = dno
+    ;
+    
+    FOR data IN (SELECT empno, ename, job FROM emp01 WHERE deptno = dno) LOOP
+        DBMS_OUTPUT.PUT_LINE(data.empno || data.ename || data.job || dno || buseo);
+    END LOOP;
+END;
+/
 
 /*
     문제 5 ]
