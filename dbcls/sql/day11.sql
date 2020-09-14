@@ -295,7 +295,7 @@ BEGIN
                         emp01 e, dept d
                     WHERE
                         e.deptno = d.deptno
-                        AND e.deptno = 20
+                        AND e.deptno = dno
                 ) LOOP
         DBMS_OUTPUT.PUT_LINE('');
     END LOOP;
@@ -330,6 +330,98 @@ END;
         사원이름을 입력하면 해당 사원의 소속부서의 
             부서최대급여, 부서최소급여, 부서평균급여, 부서급여합계, 부서원수
         를 출력하는 저장프로시저(proc03)를 제작하고 실행하세요.
+*/
+
+CREATE OR REPLACE PROCEDURE proc03(
+    name emp01.ename%TYPE
+)
+IS
+    dno emp01.deptno%TYPE;
+BEGIN
+    DBMS_OUTPUT.ENABLE;
+    
+    SELECT
+        deptno
+    INTO
+        dno
+    FROM
+        emp01
+    WHERE
+        ename = name
+    ;
+    
+    DBMS_OUTPUT.PUT_LINE(RPAD('=', 70, '='));
+    DBMS_OUTPUT.PUT_LINE(' 부서최대급여 | 부서최소급여 | 부서평균급여 | 부서급여합계 | 부서원수 ');
+    DBMS_OUTPUT.PUT_LINE(RPAD('-', 70, '-'));
+    FOR data IN (
+                        SELECT
+                            MAX(sal) max, MIN(sal) min, AVG(sal) avg, SUM(sal) sum, COUNT(*) cnt
+                        FROM
+                            emp01
+                        GROUP BY
+                            deptno
+                        HAVING
+                            deptno = dno
+                  ) LOOP
+        DBMS_OUTPUT.PUT_LINE(LPAD(RPAD(data.max, 8, ' '), 13, ' ') || ' | ' || LPAD(RPAD(data.min, 7, ' '), 12, ' ') || 
+                            ' | ' || LPAD(RPAD(data.avg, 8, ' '), 12, ' ') || ' | ' || LPAD(RPAD(data.sum, 8, ' '), 12, ' ') || 
+                            ' | ' ||  LPAD(RPAD(data.cnt, 9, ' '), 12, ' '));
+    END LOOP;
+    DBMS_OUTPUT.PUT_LINE(RPAD('=', 70, '='));
+END;
+/
+
+exec proc03('SMITH');
+
+CREATE OR REPLACE PROCEDURE proc03(
+    name emp01.ename%TYPE
+)
+IS
+BEGIN
+    DBMS_OUTPUT.ENABLE;
+    DBMS_OUTPUT.PUT_LINE(RPAD('=', 70, '='));
+    DBMS_OUTPUT.PUT_LINE(' 부서최대급여 | 부서최소급여 | 부서평균급여 | 부서급여합계 | 부서원수 ');
+    DBMS_OUTPUT.PUT_LINE(RPAD('-', 70, '-'));
+    FOR data IN (
+                    SELECT
+                        max, min, avg, sum, cnt
+                    FROM
+                        emp01, 
+                        (
+                            SELECT
+                                deptno dno, MAX(sal) max, MIN(sal) min, AVG(sal) avg, SUM(sal) sum, COUNT(*) cnt
+                            FROM
+                                emp01
+                            GROUP BY
+                                deptno
+                        ) -- 인라인뷰
+                    WHERE
+                        deptno = dno    -- 조인 조건
+                        AND ename = name -- 일반 조건
+                ) LOOP
+        DBMS_OUTPUT.PUT_LINE(LPAD(RPAD(data.max, 8, ' '), 13, ' ') || ' | ' || LPAD(RPAD(data.min, 7, ' '), 12, ' ') || 
+                            ' | ' || LPAD(RPAD(data.avg, 8, ' '), 12, ' ') || ' | ' || LPAD(RPAD(data.sum, 8, ' '), 12, ' ') || 
+                            ' | ' ||  LPAD(RPAD(data.cnt, 9, ' '), 12, ' '));
+    END LOOP;
+    DBMS_OUTPUT.PUT_LINE(RPAD('=', 70, '='));
+END;
+/
+exec proc03('KING');
+
+/*
+    문제 6 ]
+        직급을 입력하면
+        해당 직급을 가진 사원들의
+            사원이름, 급여, 부서이름
+        을 출력하는 프로시저(proc04)를 제작하고 실행하세요.
+*/
+
+/*
+    문제 7 ]
+        이름을 입력하면
+        해당 사원의
+            사원번호, 사원이름, 직급, 급여 , 급여등급
+        을 출력하는 프로시저를 제작하고 실행하세요.
 */
 
 
