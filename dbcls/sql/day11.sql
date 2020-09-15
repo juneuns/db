@@ -817,8 +817,40 @@ WHERE
         를 출력해주는 프로시저(proc10)을 제작하고 실행하세요.
         단, 레코드 타입을 사용해서 처리하세요.
 */
+CREATE OR REPLACE PROCEDURE proc10(
+    ino IN emp01.empno%TYPE
+)
+IS
+    TYPE e_rec IS RECORD(
+        iname emp01.ename%TYPE,
+        ijob emp01.job%TYPE,
+        idno emp01.deptno%TYPE,
+        iloc dept.loc%TYPE
+    );
+    
+    irec e_rec;
+BEGIN
+    FOR data IN (
+                SELECT
+                    e.ename name, e.job job, e.deptno deptno, d.loc loc
+                FROM
+                    emp01 e, dept d
+                WHERE
+                    e.deptno = d.deptno
+                    AND e.empno = ino
+                ) LOOP
+        irec.iname := data.name;
+        irec.ijob := data.job;
+        irec.idno := data.deptno;
+        irec.iloc := data.loc;
+        
+        DBMS_OUTPUT.PUT_LINE(irec.iname|| ' | ' || irec.ijob || ' | ' || irec.idno || ' | ' || irec.iloc);
+    END LOOP;
+END;
+/
+exec proc10(7369);
 
-
+select empno FRom emp01;
 /*
     문제 10 ]
         부서번호를 입력하면
@@ -834,9 +866,73 @@ WHERE
                 2. 레코드타입을 기억할 테이블타입을 선언한다.
                 3. 테이블타입 배열변수를 만든다.
 */
+CREATE OR REPLACE PROCEDURE proc10(
+    idno IN emp01.deptno%TYPE
+)
+IS
+    TYPE e_rec IS RECORD(
+        iname emp01.ename%TYPE,
+        ijob emp01.job%TYPE,
+        idname dept.dname%TYPE,
+        iloc dept.loc%TYPE
+    );
+    
+    TYPE e_tab IS TABLE OF e_rec
+    INDEX BY BINARY_INTEGER;
+    
+    result e_tab;
+    
+    j BINARY_INTEGER := 0;
+    
+    TYPE t_emp IS TABLE OF emp%ROWTYPE
+    INDEX BY BINARY_INTEGER;
+    
+    d1 t_emp;
+    
+    TYPE t_dept IS TABLE OF dept%ROWTYPE
+    INDEX BY BINARY_INTEGER;
+    
+    d2 t_dept;
+BEGIN
+    FOR data IN (
+                    SELECT
+                        ename, job, dname, loc
+                    FROM
+                        emp01 e, dept d
+                    WHERE
+                        e.deptno = d.deptno
+                        AND e.deptno = idno
+                ) LOOP
+        j := j + 1;
+        result(j) := data;
+        
+        
+        d1(j).ename := data.ename;
+        d1(j).job := data.job;
+        d2(j).dname := data.dname;
+        d2(j).loc := data.loc;
+    END LOOP;
+    
+    -- 출력
+    DBMS_OUTPUT.PUT_LINE(' 사원이름 | 사원직급 | 부서이름 | 부서위치');
+    FOR i IN 1 .. j LOOP
+        DBMS_OUTPUT.PUT_LINE(result(i).iname|| ' | ' || result(i).ijob || 
+                                ' | ' || result(i).idname || ' | ' || result(i).iloc);
+    END LOOP;
+    
+    DBMS_OUTPUT.PUT_LINE('');
+    DBMS_OUTPUT.PUT_LINE('-------------------------------------------');
+    DBMS_OUTPUT.PUT_LINE(' 사원이름 | 사원직급 | 부서이름 | 부서위치');
+    FOR i IN 1 .. j LOOP
+        DBMS_OUTPUT.PUT_LINE(d1(i).ename|| ' | ' || d1(i).job || 
+                                ' | ' || d2(i).dname || ' | ' || d2(i).loc);
+    END LOOP;
+    
+    
+END;
+/
 
-
-
+exec proc10(20);
 
 
 
