@@ -442,14 +442,82 @@ END;
 
 exec proc16;
 
+--------------------------------------------------------------------------------------------------------------------------------
+/*
+    WHERE CURRENT OF 절
+        서브질의대신에 커서를 이용하는 방법
+        
+    예제 ]
+        부서번호와 직급을 입력받아서
+        해당 부서의 최저급여자의 직급을 입력받은 직급으로 수정하는 프로시저를 만들고 실행하세요.
+*/
+
+UPDATE
+    emp01
+SET
+    job = '점원'
+WHERE
+    empno = (
+                SELECT
+                    empno
+                FROM
+                    emp01
+                WHERE
+                    deptno = 10
+                    AND sal = (SELECT min(sal) from emp01 where deptno = 10)
+            )
+;
+
+SELECT
+    empno
+FROM
+    emp01
+WHERE
+    deptno = 10
+    AND sal = (SELECT min(sal) from emp01 where deptno = 10)
+;
+
+-- cursor
+CREATE OR REPLACE PROCEDURE proc17(
+    dno IN emp01.deptno%TYPE,
+    ijob IN emp01.job%TYPE
+)
+IS
+    -- 조회 질의명령을 커서로 선언한다.
+    CURSOR no_cur IS
+        SELECT
+            empno
+        FROM
+            emp01
+        WHERE
+            deptno = dno
+            AND sal = (SELECT min(sal) from emp01 where deptno = dno)
+    FOR UPDATE
+    -- 이 커서는 UPDATE 질의명령에 부가적으로 사용되는 커서임을 밝히는 구문
+    ;
+BEGIN
+    FOR data IN no_cur LOOP
+        UPDATE
+            emp01
+        SET
+            job = ijob
+        WHERE CURRENT OF no_cur
+        ;
+        /*
+            이 UPDATE 질의명령의 조건은 IS 절에 선언한 커서를 이용해서
+            커서의 결과를 이용해서 조건을 만든다.
+        */
+    END LOOP;
+END;
+/
 
 
+select * from emp01 where deptno = 10;
 
+exec proc17(10, '마케터');
+select * from emp01 where deptno = 10;
 
-
-
-
-
+rollback;
 
 
 
