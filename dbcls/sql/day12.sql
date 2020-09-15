@@ -203,7 +203,6 @@ select * from emp01;
                     질의명령
                 ;
                 
-                
         참고 ]
             WHERE CURRENT OF 절
             ==> 커서를 이용해서 다른 질의명령을 실행하기 위한 방법
@@ -287,6 +286,170 @@ END;
 /
 
 exec proc13(20);
+
+
+-- FOR LOOP 내에서의 커서
+-- 에제 ] 부서별로 부서이름, 부서평균급여, 사원수 를 출력하는 프로시저를 작성하고 실행하세요.
+--          단, 커서를 이용해서 처리하세요.
+
+
+SELECT
+    dname, ROUND(AVG(sal), 2) avg, COUNT(*) cnt
+FROM
+    emp01 e, dept d
+WHERE
+    e.deptno = d.deptno
+GROUP BY
+    dname
+;
+
+CREATE OR REPLACE PROCEDURE proc14
+IS
+    -- 1. 커서만든다.
+    CURSOR d_info01 IS
+        SELECT
+            dname, ROUND(AVG(sal), 2) avg, COUNT(*) cnt
+        FROM
+            emp01 e, dept d
+        WHERE
+            e.deptno = d.deptno
+        GROUP BY
+            dname
+        ;
+BEGIN
+    -- 2. 커서 연다.
+    --OPEN d_info01;
+    -- 3. 커서 패치.
+    -- 4. 커서 닫는다.
+    -- FOR LOOP 를 사용하게 될 경우 위 세단계는 자동으로 처리된다.
+    -- 따라서 OPEN, FETCH, CLOSE 가 필요없다.
+    
+    DBMS_OUTPUT.PUT_LINE(RPAD('-', 32, '-'));
+    DBMS_OUTPUT.PUT_LINE(' 부서이름 | 평균급여 | 부서원수 ' );
+    DBMS_OUTPUT.PUT_LINE(RPAD('+', 32, '+'));
+    FOR data IN d_info01 LOOP
+        DBMS_OUTPUT.PUT_LINE(data.dname || ' | ' || data.avg || ' | ' || data.cnt );
+    END LOOP;
+END;
+/
+
+execute proc14;
+
+-------------------------------------------------------------------------------------------------------------
+/*
+    명시적 커서도 멤버변수를 사용할 수 있다.
+    
+    예제 ]
+        사원의 이름, 직급, 급여를 출력하는 프로시저를 작성하고 실행하세요.
+        단, 커서를 이용해서 처리하고
+        최종적으로 출력된 사원수를 같이 출력하도록 하세요.
+*/
+
+CREATE OR REPLACE PROCEDURE proc15
+IS
+    -- 커서 만든다.
+    CURSOR  e_info IS
+        SELECT
+            ename, job, sal
+        FROM
+            emp01
+    ;
+    
+    -- 레코드 타입 선언
+    TYPE e01 IS RECORD(
+        name emp01.ename%TYPE,
+        ejob emp01.job%TYPE,
+        esal emp01.sal%TYPE
+    );
+    
+    -- 레코드 변수 선언
+    data e01;
+BEGIN
+    -- FOR LOOP 에서는 OPEN, FETCH, CLOSE가 필요가 없다. <== 자동으로 처리해준다. 
+    -- ==> 반복문이 종료될때 커서를 닫아버리므로 결과를 알수 없다.
+    -- 따라서 일반 반복문으로 처리한다.
+    
+    -- 커서열고
+    OPEN e_info;
+    -- 커서 반복해서 실행한다.
+    DBMS_OUTPUT.PUT_LINE('');
+    DBMS_OUTPUT.PUT_LINE('----------------------------------');
+    LOOP
+        -- 커서 패치
+        FETCH e_info INTO data;
+        DBMS_OUTPUT.PUT_LINE('사원이름 : ' || data.name);
+        DBMS_OUTPUT.PUT_LINE('사원직급 : ' || data.ejob);
+        DBMS_OUTPUT.PUT_LINE('사원급여 : ' || data.esal);
+        DBMS_OUTPUT.PUT_LINE('----------------------------------');
+        
+        -- 종료조건 기술
+        EXIT WHEN e_info%NOTFOUND;
+    END LOOP;
+    
+    -- 조회된 결과 수 출력한다.
+    DBMS_OUTPUT.PUT_LINE('***** 총사원수 : ' || e_info%ROWCOUNT || ' 명 *****');
+    -- 커서 닫고
+    CLOSE e_info;
+END;
+/
+
+exec proc15;
+
+--------------------------------------------------------------------------------------------------------------------------------
+/*
+    커서에서도 파라미터를 받아서 사용할 수 있다.
+    
+    예제 ]
+        부서번호를 입력받아서 해당 부서의 사원이름을 출력하는 프로시저를 작성하고 실행하세요.
+        단, 커서의 파라미터를 이용해서 처리하세요.
+*/
+CREATE OR REPLACE PROCEDURE proc16
+IS
+    CURSOR namelist(
+        dno emp01.deptno%TYPE
+    )
+    IS
+        SELECT
+            ename
+        FROM
+            emp01
+        WHERE
+            deptno = dno
+    ;
+BEGIN
+    -- 10번 부서 사원출력
+    DBMS_OUTPUT.PUT_LINE('');
+    DBMS_OUTPUT.PUT_LINE('### 10 부서 사원이름 ###');
+    FOR data IN namelist(10) LOOP
+        DBMS_OUTPUT.PUT_LINE(data.ename);
+    END LOOP;
+    
+    -- 20번 부서 사원출력
+    DBMS_OUTPUT.PUT_LINE('');
+    DBMS_OUTPUT.PUT_LINE('### 20 부서 사원이름 ###');
+    FOR data IN namelist(20) LOOP
+        DBMS_OUTPUT.PUT_LINE(data.ename);
+    END LOOP;
+    
+    -- 30번 부서 사원출력
+    DBMS_OUTPUT.PUT_LINE('');
+    DBMS_OUTPUT.PUT_LINE('### 30 부서 사원이름 ###');
+    FOR data IN namelist(30) LOOP
+        DBMS_OUTPUT.PUT_LINE(data.ename);
+    END LOOP;
+END;
+/
+
+exec proc16;
+
+
+
+
+
+
+
+
+
 
 
 
