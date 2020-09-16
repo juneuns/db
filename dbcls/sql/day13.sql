@@ -533,11 +533,202 @@ BEGIN
 END;
 /
 
+DELETE FROM EMP01 WHERE EMPNO = 8000;
+
 insert into emp01(empno, ename, deptno)
 values(
     8000, 'dooly', 40
 );
 
 
+-------------------------------------------------------------------------------------------------------------------
+/*
+    스케줄러
+    ==> 특정 시간이 되면 원하는 질의명령이 실행되도록 하는 기능을 말한다.
+        즉, 오라클에게 스케줄을 알려주어서 그 스케줄대로 작업을 실해한다고 해서
+        스케줄러 라 부른다.
+        
+    작업 순서 ]
+        
+        1. 실행할 질의명령을 포함하는 프로시저를 만들어 놓는다.
+        2. 프로그램을 등록
+            ==> 스케줄로 실행할 프로그램(1번에 만든 프로시저)을 등록해 놓아야 한다.
+            
+        3. 스케줄을 등록
+            ==> 언제 프로시저가 실행될지를 지정하는 내용을 만들어 놓는 것.
+            
+        4. 잡 등록
+            ==> 2번의 내용과 3번 내용을 합쳐서 하나의 스케줄 작업을 완성하는 단계
+        
+*/
+
+-- 1분에 한번씩 자동적으로 데이터가 입력되도록 해보자.
+
+-- 테이블 준비
+CREATE TABLE test01(
+    no NUMBER(3),
+    wdate Date
+);
+
+-- 스케줄러 작업을 한다.
+
+-- 1. 프로시저를 작성한다.
+CREATE OR REPLACE PROCEDURE proc31
+IS
+BEGIN
+    INSERT INTO
+        test01
+    VALUES(
+        (
+            SELECT
+                NVL(MAX(no) + 1, 100)
+            FROM
+                test01
+        ),
+        sysdate
+    );
+END;
+/
+
+-- 2. 프로그램 등록
+/*
+    형식 ]
+        BEGIN
+            DBMS_SCHEDULER.CREATE_PROGRAM(
+                program_name    => '적당한이름',
+                program_action  => '사용할 프로시저이름',
+                -- 프로시저를 이용하지 않고
+                -- 직접 질의명령을 만들어도 상관이 없다.
+                program_type => 'STORED_PROCEDURE',
+                -- 만약 위(program_action)에서 질의명령을 직접 작성했다면
+                -- EXECUTABLE 이라고 기술하면 된다.
+                comment     =>  '적당한 설명',
+                enabled     => TRUE
+                -- 만드는 순간 활성화 하세요. 라는 의미
+            );
+        END;
+        /
+*/
+
+-- system 계정에서 작업한다.
+grant create any procedure, create any job, execute any program to hello;
+
+-- hello 계정에서 작업한다.
+BEGIN
+    DBMS_SCHEDULER.CREATE_PROGRAM(
+        program_name => 'prog1',
+        program_action => 'proc31',
+        program_type => 'STORED_PROCEDURE',
+        comments     => '테스트용스케줄러',
+        enabled     => TRUE
+    );
+END;
+/
+
+/*
+    3. 스케줄 등록
+      ==> 언제 실행될지를 미리 지정하는 것.
+        
+        형식 ]
+            BEGIN
+                DBMS_SCHEDULER.CREATE_SCHEDULE(
+                    schedule_name => '스케줄이름',
+                    start_date => 시작날짜,
+                    end_date => 종료일.
+                    repeat_interval => '반복주기',
+                    comments => '적당한설명'
+                );
+            END;
+            /
+            
+        참고 ]
+            start_date, end_date 는 생략해도 상관없다.
+            start_date 를 생략하면 만드는 순간부터 스케줄이 가동된다.
+            end_date를 생략하면 무한정 반복한다.
+            
+            예 ]
+                오늘밤 12시부터 스케줄을 가동하고 싶다면
+                start_date => (TRUNC(SYSDATE) + 0 / 24) + 1,
+                                0 - 시작 시간
+                                1 - 오늘로부터 이후 날짜
+                                
+        참고 ]
+            repeat_interval은 반복주기를 입력하는 부분
+            repeat_interval => FREQ=#;INTERVAL=@ 의 형식으로 지정한다.
+                #   - 간격을 의미한다.
+                    예 ]
+                        HOURLY      - 시간간격
+                        MINUTELY    - 분간격
+                        DAILY       - 일간격
+                        
+                @   - 간격주기
+                
+            예 ]
+                repeat_interval => FREQ=MINUTELY;INTERVAL=1
+            
+*/
+
+BEGIN
+    DBMS_SCHEDULER.CREATE_SCHEDULE(
+        schedule_name => 'one_min_sch01',
+        repeat_interval => 'FREQ=MINUTELY;INTERVAL=1',
+        comments => 'every 1 min'
+    );
+END;
+/
+
+-- 4. 잡 등록 : 위에서 만든 두가지를 합쳐서 작업단위를 만든다.
+/*
+    형식 ]
+        BEGIN
+            DBMS_SCHEDULER.CREATE_JOB(
+                job_name => '작업단위이름',
+                program_name => '프로그램이름',
+                schedule_name => '스케줄이름',
+                comments => '적당한코멘트',
+                enabled => TRUE
+            );
+        END;
+        /
+*/
+
+BEGIN
+    DBMS_SCHEDULER.CREATE_JOB(
+        job_name => 'test_job1',
+        program_name => 'prog1',
+        schedule_name => 'one_min_sch01',
+        comments => 'test batch program',
+        enabled => TRUE
+    );
+END;
+/
 
 
+
+SELECT no, to_char(wdate, 'yyyy/MM/dd HH24:mi:ss') 작성일 FROM test01 order by no;
+
+/*
+    스케줄러 삭제하기
+        execute DBMS_SCHEDULER.DROP_JOB('test_job1', false);
+        execute DBMS_SCHEDULER.DROP_PROGRAM('prog1', false);
+        execute DBMS_SCHEDULER.DROP_SCHEDULE('one_min_sch01', false);
+*/
+
+execute DBMS_SCHEDULER.DROP_JOB('test_job1', false);
+execute DBMS_SCHEDULER.DROP_PROGRAM('prog1', false);
+execute DBMS_SCHEDULER.DROP_SCHEDULE('one_min_sch01', false);
+
+delete from test01;
+
+
+SELECT
+    empno, ename, mgr, level
+FROM
+    emp01
+START WITH
+    mgr IS NULL
+CONNECT BY
+    PRIOR empno = mgr
+ORDER SIBLINGS BY
+    empno
+;
