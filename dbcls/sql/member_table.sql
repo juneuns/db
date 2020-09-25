@@ -4,6 +4,8 @@ CREATE TABLE member(
     id VARCHAR2(10 CHAR)
         CONSTRAINT MEMB_ID_UK UNIQUE
         CONSTRAINT MEMB_ID_NN NOT NULL,
+    pw VARCHAR2(8 CHAR)
+        CONSTRAINT MEMB_PW_NN NOT NULL,
     name VARCHAR2(10 CHAR)
         CONSTRAINT MEMB_NAME_NN NOT NULL,
     mail VARCHAR2(50 CHAR)
@@ -18,7 +20,7 @@ CREATE TABLE member(
     avt NUMBER(2)
         CONSTRAINT MEMB_AVT_NN NOT NULL
         CONSTRAINT MEMB_AVT_FK REFERENCES avatar(ano),
-    joinDate Date
+    joinDate Date DEFAULT sysdate
         CONSTRAINT MEMB_JOIN_NN NOT NULL,
     isshow CHAR(1) DEFAULT 'Y'
         CONSTRAINT MEMB_SHOW_NN NOT NULL
@@ -27,55 +29,27 @@ CREATE TABLE member(
 
 
 INSERT INTO
-    member01(mno, id, name, mail, tel, gen, avt)
+    member(mno, id, pw, name, mail, tel, gen, avt)
 VALUES(
-    1000, 'euns', '전은석', 'euns@increpas.com',
+    1000, 'euns', '12345', '전은석', 'euns@increpas.com',
     '010-3175-9042', 'M', 11
 );
 
 INSERT INTO
-    member01(mno, id, name, mail, tel, gen, avt)
+    member(mno, id, pw, name, mail, tel, gen, avt)
 VALUES(
-    1001, 'joo', '김주영', 'joo@increpas.com',
+    1001, 'joo', '12345', '김주영', 'joo@increpas.com',
     '010-1111-1111', 'F', 14
 );
 
 INSERT INTO
-    member01(mno, id, name, mail, tel, gen, avt)
+    member(mno, id, pw, name, mail, tel, gen, avt)
 VALUES(
-    1002, 'joseph', '윤요셉', 'joseph@increpas.com',
+    1002, 'joseph', '12345', '윤요셉', 'joseph@increpas.com',
     '010-2222-2222', 'M', 12
 );
 
 commit;
-
-ALTER TABLE
-    member01
-ADD
-    joinDate DATE DEFAULT sysdate
-    CONSTRAINT MEMB01_JDAY_NN NOT NULL
-;
-
-
-
-SELECT * FROM member01;
-SELECT id FROM member01 WHERE isshow = 'Y';
-
-ALTER TABLE
-    member01
-ADD
-    pw VARCHAR2(10) DEFAULT '12345'
-        CONSTRAINT MEMB01_PW_NN NOT NULL
-;
-
-ALTER TABLE
-    member01
-MODIFY
-    pw VARCHAR2(10) DEFAULT (null)
-;
-
-select *
-
 
 
 
